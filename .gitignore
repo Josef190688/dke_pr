@@ -1,0 +1,14 @@
+# Python Bytecode-Dateien
+__pycache__/
+*.pyc
+
+# Virtuelle Umgebung
+venv/
+
+# Lokale Konfigurationsdateien
+instance/
+*.cfg
+
+# Log-Dateien
+logs/
+*.log
