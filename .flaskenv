@@ -1,0 +1,1 @@
+FLASK_APP=dke_pr.py
