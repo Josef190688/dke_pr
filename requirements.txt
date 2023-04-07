@@ -1,0 +1,7 @@
+alembic==1.10.3
+Flask==2.2.3
+flask_migrate==4.0.4
+flask_sqlalchemy==3.0.3
+flask_wtf==1.1.1
+SQLAlchemy==2.0.9
+WTForms==3.0.1
