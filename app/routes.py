@@ -73,3 +73,8 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/person_erstellen')
+@login_required
+def person_erstellen():
+    return render_template('person_erstellen.html', title='Person erstellen')
