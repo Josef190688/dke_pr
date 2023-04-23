@@ -19,6 +19,21 @@ def create_user(username, password, first_name, last_name, birth_date=None, phon
 @app.route('/index')
 @login_required
 def index():
+    user = {'username': 'Miguel'}
+    posts = [
+        {
+            'author': {'username': 'John'},
+            'body': 'Beautiful day in Portland!'
+        },
+        {
+            'author': {'username': 'Susan'},
+            'body': 'The Avengers movie was so cool!'
+        }
+    ]
+    return render_template('index.html', title='Home', user=user, posts=posts)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     try:
         create_user(
             username="admin",
@@ -41,22 +56,7 @@ def index():
         )
     except:
         print("create user failed")
-
-    user = {'username': 'Miguel'}
-    posts = [
-        {
-            'author': {'username': 'John'},
-            'body': 'Beautiful day in Portland!'
-        },
-        {
-            'author': {'username': 'Susan'},
-            'body': 'The Avengers movie was so cool!'
-        }
-    ]
-    return render_template('index.html', title='Home', user=user, posts=posts)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+        
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     form = LoginForm()
