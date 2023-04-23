@@ -1,9 +1,11 @@
+@echo off
 rem Das Ausführen dieses Batch-Files legt ein Virtual Environment für das Projekt an
 rem und installiert alle nötigen Flask Abhängigkeiten. 
 
-@echo off
+@echo on
 python -m venv venv
-venv\Scripts\activate
+icacls venv\Scripts\python.exe /grant %USERNAME%:(F)
+call venv\Scripts\activate
 python -m pip install --upgrade pip
 python -m pip install flask
 python -m pip install python-dotenv
