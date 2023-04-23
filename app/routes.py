@@ -5,20 +5,12 @@ from flask_login import current_user, login_required, login_user, logout_user
 
 def create_user(username, password, first_name, last_name, birth_date=None, phone_number=None, profession=None, is_admin=False, account_balance_in_euro=0.0, displayed_currency="EUR"):
     try:
-        # Erstelle ein Account-Objekt
         account = models.Account(account_balance_in_euro=account_balance_in_euro, displayed_currency=displayed_currency)
-        # Füge es zur Datenbank hinzu
         db.session.add(account)
-
-        # Erstelle ein Person-Objekt und fülle es mit Daten
         person = models.Person(username=username, first_name=first_name, last_name=last_name, birth_date=birth_date, phone_number=phone_number, profession=profession, is_admin=is_admin, account=account)
         person.set_password(password)
-        # Füge es zur Datenbank hinzu
-        x = db.session.add(person)
-        print(x)
-        # Commit the change to the database
+        db.session.add(person)
         db.session.commit()
-
         return person
     except:
         db.session.rollback()
