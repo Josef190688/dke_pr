@@ -7,11 +7,7 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install flask
 pip install python-dotenv
-brew install mysql-client
-echo 'export PATH="/usr/local/opt/mysql-client/bin:$PATH"' >> ~/.bash_profile
-export PATH="/usr/local/opt/mysql-client/bin:$PATH"
-pip install mysqlclient
-pip install flask_mysqldb
+pip install flask_login
 pip install pipreqs
 pipreqs .
 pip install -r requirements.txt
