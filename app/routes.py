@@ -1,6 +1,6 @@
 from flask import flash, redirect, render_template, url_for
 from app import app, models, db
-from app.forms import LoginForm
+from app.forms import CreatePersonForm, LoginForm
 from flask_login import current_user, login_required, login_user, logout_user
 
 def create_user(username, password, first_name, last_name, birth_date=None, phone_number=None, profession=None, is_admin=False, account_balance_in_euro=0.0, displayed_currency="EUR"):
@@ -74,7 +74,23 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/person_erstellen')
+@app.route('/person_erstellen', methods=['GET', 'POST'])
 @login_required
 def person_erstellen():
-    return render_template('person_erstellen.html', title='Person erstellen')
+    form = CreatePersonForm()
+    if form.validate_on_submit():
+        try:
+            create_user(form.username.data,
+                        form.password.data,
+                        form.firstname.data,
+                        form.lastname.data,
+                        form.birthdate.data,
+                        form.phone_number.data,
+                        form.profession.data,
+                        form.is_admin.data)
+            flash(form.firstname.data + " " + form.lastname.data + " erfolgreich erstellt")
+            return redirect(url_for('index'))
+        except:
+            flash("Person erstellen nicht erfolgreich")
+            return redirect(url_for('person_erstellen'))
+    return render_template('person_erstellen.html', title='Person erstellen', form=form)
