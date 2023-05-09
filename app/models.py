@@ -2,6 +2,9 @@ from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
+# DB STRUCTURE
+# ------------------------------------------------------------------------------------------
+
 class Account(db.Model):
     __tablename__ = 'account'
 
@@ -58,3 +61,60 @@ class SecuritiesPosition(db.Model):
     positions_deposit_id = db.Column(db.Integer, db.ForeignKey('deposit.deposit_id'), nullable=False)
 
     deposit = db.relationship('Deposit', backref='securities_positions')
+
+# CRUD Personenverwaltung
+# ------------------------------------------------------------------------------------------
+# CREATE
+def create_person(username, password, first_name, last_name, birth_date, phone_number, profession, is_admin):
+    person = Person(username=username, first_name=first_name, last_name=last_name, birth_date=birth_date, phone_number=phone_number, profession=profession, is_admin=is_admin)
+    person.set_password(password)
+    db.session.add(person)
+    db.session.commit()
+    return person
+
+# READ
+def get_person(person_id):
+    return Person.query.filter_by(person_id=person_id).first()
+
+def get_all_persons():
+    return Person.query.all()
+
+# UPDATE
+def update_person(person_id, username=None, password=None, first_name=None, last_name=None, birth_date=None, phone_number=None, profession=None, is_admin=None):
+    person = get_person(person_id)
+    if not person:
+        return None
+    if username:
+        person.username = username
+    if password:
+        person.set_password(password)
+    if first_name:
+        person.first_name = first_name
+    if last_name:
+        person.last_name = last_name
+    if birth_date:
+        person.birth_date = birth_date
+    if phone_number:
+        person.phone_number = phone_number
+    if profession:
+        person.profession = profession
+    if is_admin is not None:
+        person.is_admin = is_admin
+    db.session.commit()
+    return person
+
+# DELETE
+def delete_person(person_id):
+    person = get_person(person_id)
+    if not person:
+        return None
+    db.session.delete(person)
+    db.session.commit()
+    return person
+
+#TODO: CRUD Depotübersicht
+# ------------------------------------------------------------------------------------------
+
+
+#TODO: CRUD Depotpositionen
+# ------------------------------------------------------------------------------------------

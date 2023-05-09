@@ -1,1 +1,1 @@
-FLASK_APP=dke_pr.py
+FLASK_APP=app.py

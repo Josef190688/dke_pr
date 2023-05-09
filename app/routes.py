@@ -19,6 +19,9 @@ def create_user(username, password, first_name, last_name, birth_date=None, phon
 @app.route('/index')
 @login_required
 def index():
+    if current_user.is_admin:
+        persons = models.get_all_persons()
+        return render_template('index.html', title='Home', persons=persons)
     user = {'username': 'Miguel'}
     posts = [
         {

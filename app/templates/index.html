@@ -1,11 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Hi, {{ current_user.username }}!</h1>
-    {% for post in posts %}
-    <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
-    {% endfor %}
-    {% if current_user.is_admin %}
-        <p><a href="{{ url_for('person_erstellen') }}"><button>Person ersellen</button></a></p>
-    {% endif %}
+{% for post in posts %}
+<div>
+    <p>{{ post.author.username }} says: <b>{{ post.body }}</b></p>
+</div>
+{% endfor %}
+{% if current_user.is_admin %}
+<h2>Admin Funktionen</h2>
+<p><a href="{{ url_for('person_erstellen') }}"><button>Person ersellen</button></a></p>
+<hr>
+<h1>Personen-Übersicht</h1>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Benutzername</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Geburtsdatum</th>
+            <th>Telefonnummer</th>
+            <th>Beruf</th>
+            <th>Administrator</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for person in persons %}
+        <tr>
+            <td><input type="text" name="person_id" value="{{ person.person_id }}" readonly></td>
+            <td><input type="text" name="username" value="{{ person.username }}"></td>
+            <td><input type="text" name="first_name" value="{{ person.first_name }}"></td>
+            <td><input type="text" name="last_name" value="{{ person.last_name }}"></td>
+            <td><input type="date" name="birth_date" value="{{ person.birth_date }}"></td>
+            <td><input type="text" name="phone_number" value="{{ person.phone_number }}"></td>
+            <td><input type="text" name="profession" value="{{ person.profession }}"></td>
+            <td><input type="checkbox" name="is_admin" {% if person.is_admin %} value="1" checked {% else %} value="0" {% endif %}></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 {% endblock %}
