@@ -1,22 +1,10 @@
-from flask import flash, redirect, render_template, url_for
+from flask import flash, make_response, redirect, render_template, url_for
 from app import app, models, db
 from app.forms import CreatePersonForm, LoginForm
 from flask_login import current_user, login_required, login_user, logout_user
 
-def create_user(username, password, first_name, last_name, birth_date=None, phone_number=None, profession=None, is_admin=False, account_balance_in_euro=0.0, displayed_currency="EUR"):
-    try:
-        account = models.Account(account_balance_in_euro=account_balance_in_euro, displayed_currency=displayed_currency)
-        db.session.add(account)
-        person = models.Person(username=username, first_name=first_name, last_name=last_name, birth_date=birth_date, phone_number=phone_number, profession=profession, is_admin=is_admin, account=account)
-        person.set_password(password)
-        db.session.add(person)
-        db.session.commit()
-        return person
-    except:
-        db.session.rollback()
-
 @app.route('/')
-@app.route('/index')
+@app.route('/index', methods=['GET', 'POST', 'DELETE'])
 @login_required
 def index():
     if current_user.is_admin:
@@ -37,28 +25,28 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    try:
-        create_user(
-            username="admin",
-            password="123",
-            first_name="Josef",
-            last_name="Landmann",
-            is_admin=True
-        )
-        create_user(
-            username="max",
-            password="123",
-            first_name="Max",
-            last_name="Mustermann",
-            birth_date="1980-01-01",
-            phone_number="+49123456789",
-            profession="Software Engineer",
-            is_admin=False,
-            account_balance_in_euro=5000.0,
-            displayed_currency="EUR"
-        )
-    except:
-        print("create user failed")
+    # try:
+    #     models.create_user(
+    #         username="admin",
+    #         password="123",
+    #         first_name="Josef",
+    #         last_name="Landmann",
+    #         is_admin=True
+    #     )
+    #     models.create_user(
+    #         username="max",
+    #         password="123",
+    #         first_name="Max",
+    #         last_name="Mustermann",
+    #         birth_date="1980-01-01",
+    #         phone_number="+49123456789",
+    #         profession="Software Engineer",
+    #         is_admin=False,
+    #         account_balance_in_euro=5000.0,
+    #         displayed_currency="EUR"
+    #     )
+    # except:
+    #     print("create user failed")
         
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -83,17 +71,51 @@ def person_erstellen():
     form = CreatePersonForm()
     if form.validate_on_submit():
         try:
-            create_user(form.username.data,
-                        form.password.data,
-                        form.firstname.data,
-                        form.lastname.data,
-                        form.birthdate.data,
-                        form.phone_number.data,
-                        form.profession.data,
-                        form.is_admin.data)
+            models.create_person(form.username.data,
+                                 form.password.data,
+                                 form.firstname.data,
+                                 form.lastname.data,
+                                 form.birthdate.data,
+                                 form.phone_number.data,
+                                 form.profession.data,
+                                 form.is_admin.data)
             flash(form.firstname.data + " " + form.lastname.data + " erfolgreich erstellt")
             return redirect(url_for('index'))
-        except:
+        except Exception as error:
             flash("Person erstellen nicht erfolgreich")
             return redirect(url_for('person_erstellen'))
     return render_template('person_erstellen.html', title='Person erstellen', form=form)
+
+@app.route('/persons/<int:id>', methods=['DELETE'])
+@login_required
+def delete_person(id):
+    if current_user.is_admin:
+        try:
+            models.delete_person(id)
+            flash("Person erfolgreich gelöscht")
+            return make_response('', 204)
+        except:
+            flash("Person löschen nicht erfolgreich")
+    return redirect(url_for('index'))
+
+@app.route('/personen_einfuegen', methods=['GET'])
+@login_required
+def personen_einfuegen():
+    try:
+        # Erstelle 10 Test-Personen
+        for i in range(1, 11):
+            username = f'username{i}'
+            password = f'password{i}'
+            first_name = f'First{i}'
+            last_name = f'Last{i}'
+            birth_date = '1990-01-01'
+            phone_number = '123456789'
+            profession = 'Profession'
+            is_admin = False
+            models.create_person(username, password, first_name, last_name, birth_date, phone_number, profession, is_admin)
+        
+        flash("Test-Personen erfolgreich erstellt")
+    except:
+        flash("Fehler beim Erstellen der Test-Personen")
+    
+    return redirect(url_for('index'))

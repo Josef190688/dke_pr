@@ -7,7 +7,9 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install flask
 pip install python-dotenv
+pip install mysqlclient
 pip install flask_login
+pip install flask-bootstrap
 pip install pipreqs
 pipreqs .
 pip install -r requirements.txt

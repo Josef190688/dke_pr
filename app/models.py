@@ -9,7 +9,7 @@ class Account(db.Model):
     __tablename__ = 'account'
 
     account_id = db.Column(db.Integer, primary_key=True)
-    account_balance_in_euro = db.Column(db.Float, nullable=False, default=0)
+    account_balance_in_euro = db.Column(db.Float, nullable=False, default=0.0)
     displayed_currency = db.Column(db.Enum('EUR', 'USD'), nullable=False, default='EUR')
 
 class Person(UserMixin, db.Model):
@@ -66,15 +66,27 @@ class SecuritiesPosition(db.Model):
 # ------------------------------------------------------------------------------------------
 # CREATE
 def create_person(username, password, first_name, last_name, birth_date, phone_number, profession, is_admin):
-    person = Person(username=username, first_name=first_name, last_name=last_name, birth_date=birth_date, phone_number=phone_number, profession=profession, is_admin=is_admin)
-    person.set_password(password)
-    db.session.add(person)
-    db.session.commit()
-    return person
+    try:
+        account = Account()
+        db.session.add(account)
+        person = Person(username=username, first_name=first_name, last_name=last_name, birth_date=birth_date, phone_number=phone_number, profession=profession, is_admin=is_admin, account=account)
+        person.set_password(password)
+        db.session.add(person)
+        db.session.commit()
+        return person
+    except Exception as error:
+        db.session.rollback()
 
 # READ
 def get_person(person_id):
     return Person.query.filter_by(person_id=person_id).first()
+
+def get_persons_by_filter(filter):
+    return Person.query.filter(
+        (Person.username.ilike(f"%{filter}%")) |
+        (Person.first_name.ilike(f"%{filter}%")) |
+        (Person.last_name.ilike(f"%{filter}%"))
+    ).all()
 
 def get_all_persons():
     return Person.query.all()
@@ -105,12 +117,15 @@ def update_person(person_id, username=None, password=None, first_name=None, last
 
 # DELETE
 def delete_person(person_id):
-    person = get_person(person_id)
-    if not person:
-        return None
-    db.session.delete(person)
-    db.session.commit()
-    return person
+    try:
+        person = get_person(person_id)
+        if not person:
+            return False
+        db.session.delete(person)
+        db.session.commit()
+        return True
+    except:
+        return False
 
 #TODO: CRUD Depotübersicht
 # ------------------------------------------------------------------------------------------

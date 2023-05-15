@@ -7,37 +7,66 @@
 </div>
 {% endfor %}
 {% if current_user.is_admin %}
-<h2>Admin Funktionen</h2>
-<p><a href="{{ url_for('person_erstellen') }}"><button>Person ersellen</button></a></p>
-<hr>
-<h1>Personen-Übersicht</h1>
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Benutzername</th>
-            <th>Vorname</th>
-            <th>Nachname</th>
-            <th>Geburtsdatum</th>
-            <th>Telefonnummer</th>
-            <th>Beruf</th>
-            <th>Administrator</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for person in persons %}
-        <tr>
-            <td><input type="text" name="person_id" value="{{ person.person_id }}" readonly></td>
-            <td><input type="text" name="username" value="{{ person.username }}"></td>
-            <td><input type="text" name="first_name" value="{{ person.first_name }}"></td>
-            <td><input type="text" name="last_name" value="{{ person.last_name }}"></td>
-            <td><input type="date" name="birth_date" value="{{ person.birth_date }}"></td>
-            <td><input type="text" name="phone_number" value="{{ person.phone_number }}"></td>
-            <td><input type="text" name="profession" value="{{ person.profession }}"></td>
-            <td><input type="checkbox" name="is_admin" {% if person.is_admin %} value="1" checked {% else %} value="0" {% endif %}></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div style="margin: 5%;">
+    <h2>Admin Funktionen</h2>
+    <p><a href="{{ url_for('person_erstellen') }}"><button>Person erstellen</button></a></p>
+    <p><a href="{{ url_for('personen_einfuegen') }}"><button>Testdaten einfügen</button></a></p>
+    <hr>
+    <h1>Personen-Übersicht</h1>
+    <!-- Kontext-Menü -->
+    <div class="btn-group d-md-none m-1">
+        <button id="context-menu-button" class="btn dropdown-toggle"
+            type="button"
+            data-toggle="dropdown"
+            data-boundary="window"
+            aria-expanded="false"
+            style="visibility: hidden;">
+            <span class="glyphicon glyphicon-option-vertical"></span>
+    </button>
+        <ul id="context-menu" class="dropdown-menu">
+            <li><a id="show-deposit" href="#">Zur Depotübersicht</a></li>
+            <li><a id="edit-person" href="#">Bearbeiten</a></li>
+            <li><a id="delete-person" href="#">Löschen</a></li>
+        </ul>
+    </div>
+    <!-- Personen-Tabelle -->
+    <table id="my-table" class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Benutzername</th>
+                <th>Vorname</th>
+                <th>Nachname</th>
+                <th>Geburtsdatum</th>
+                <th>Telefonnummer</th>
+                <th>Beruf</th>
+                <th>Administrator</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for person in persons %}
+            <tr data-row-id="{{ person.person_id }}">
+                <td style="vertical-align: middle;">{{ person.person_id }}</td>
+                <td style="vertical-align: middle;">{{ person.username }}</td>
+                <td style="vertical-align: middle;">{{ person.first_name }}</td>
+                <td style="vertical-align: middle;">{{ person.last_name }}</td>
+                <td style="vertical-align: middle;">{{ person.birth_date.strftime('%d.%m.%Y') if person.birth_date else '' }}</td>
+                <td style="vertical-align: middle;">{{ person.phone_number if person.phone_number else '' }}</td>
+                <td style="vertical-align: middle;">{{ person.profession if person.profession else '' }}</td>
+                <td style="vertical-align: middle;">
+                    {% if person.is_admin %}
+                        <input type="checkbox" name="is_admin" value="1" checked disabled>
+                    {% else %}
+                        <input type="checkbox" name="is_admin" value="0" disabled>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</div>
 {% endif %}
 {% endblock %}
+
+

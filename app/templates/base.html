@@ -1,3 +1,16 @@
+{% extends "bootstrap/base.html" %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+{% endblock %}
+
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+  <!-- ... -->
+</div>
+{% endblock %}
+
 <html>
     <head>
         {% if title %}
@@ -5,6 +18,7 @@
         {% else %}
         <title>depotverwaltung</title>
         {% endif %}
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='main.css')}}">
     </head>
     <body>
         <div style="display: flex; justify-content: flex-end;">
@@ -35,5 +49,6 @@
         {% endif %}
         {% endwith %}
         {% block content %}{% endblock %}
+        
     </body>
 </html>

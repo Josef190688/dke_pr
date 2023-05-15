@@ -1,0 +1,8 @@
+
+
+  .table-hover tbody tr:hover {
+    background-color: #f8f9fa; /* Hintergrundfarbe für den Hover-Effekt */
+    cursor: pointer; /* Verwandelt den Mauszeiger in eine Hand */
+  }
+  
+  
