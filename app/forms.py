@@ -18,3 +18,15 @@ class CreatePersonForm(FlaskForm):
     profession = StringField('Beruf', validators=[Optional()])
     is_admin = BooleanField('Admin', validators=[Optional()])
     submit = SubmitField('erstellen')
+
+class UpdatePersonForm(FlaskForm):
+    id = StringField('id', render_kw={"readonly": True})
+    username = StringField('Benutzername', validators=[InputRequired()])
+    password = PasswordField('Passwort', render_kw={'placeholder': 'Lassen Sie dieses Feld leer, um das Passwort unverändert zu lassen'})
+    firstname = StringField('Vorname', validators=[DataRequired()])
+    lastname = StringField('Nachname', validators=[DataRequired()])
+    birthdate = DateField('Geburtsdatum', format='%Y-%m-%d', validators=[Optional()])
+    phone_number = StringField('Telefonnummer', validators=[Optional()])
+    profession = StringField('Beruf', validators=[Optional()])
+    is_admin = BooleanField('Admin', validators=[Optional()])
+    submit = SubmitField('aktualisieren')

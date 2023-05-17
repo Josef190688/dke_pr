@@ -5,4 +5,14 @@
     cursor: pointer; /* Verwandelt den Mauszeiger in eine Hand */
   }
   
+  hr.dotted-divider {
+    border: 0;
+    height: 2px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.2));
+    background-size: 80% 2px;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 10px 0;
+  }
+  
   

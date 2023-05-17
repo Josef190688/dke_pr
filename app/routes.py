@@ -1,10 +1,10 @@
-from flask import flash, make_response, redirect, render_template, url_for
+from flask import flash, make_response, redirect, render_template, request, url_for
 from app import app, models, db
-from app.forms import CreatePersonForm, LoginForm
+from app.forms import CreatePersonForm, LoginForm, UpdatePersonForm
 from flask_login import current_user, login_required, login_user, logout_user
 
 @app.route('/')
-@app.route('/index', methods=['GET', 'POST', 'DELETE'])
+@app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
     if current_user.is_admin:
@@ -25,28 +25,28 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # try:
-    #     models.create_user(
-    #         username="admin",
-    #         password="123",
-    #         first_name="Josef",
-    #         last_name="Landmann",
-    #         is_admin=True
-    #     )
-    #     models.create_user(
-    #         username="max",
-    #         password="123",
-    #         first_name="Max",
-    #         last_name="Mustermann",
-    #         birth_date="1980-01-01",
-    #         phone_number="+49123456789",
-    #         profession="Software Engineer",
-    #         is_admin=False,
-    #         account_balance_in_euro=5000.0,
-    #         displayed_currency="EUR"
-    #     )
-    # except:
-    #     print("create user failed")
+    try:
+        models.create_user(
+            username="admin",
+            password="123",
+            first_name="Josef",
+            last_name="Landmann",
+            is_admin=True
+        )
+        models.create_user(
+            username="max",
+            password="123",
+            first_name="Max",
+            last_name="Mustermann",
+            birth_date="1980-01-01",
+            phone_number="+49123456789",
+            profession="Software Engineer",
+            is_admin=False,
+            account_balance_in_euro=5000.0,
+            displayed_currency="EUR"
+        )
+    except:
+        print("create user failed")
         
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -85,6 +85,41 @@ def person_erstellen():
             flash("Person erstellen nicht erfolgreich")
             return redirect(url_for('person_erstellen'))
     return render_template('person_erstellen.html', title='Person erstellen', form=form)
+
+@app.route('/person_aktualisieren/<int:id>', methods=['GET', 'POST'])
+@login_required
+def update_person_details(id):
+    if current_user.is_admin:
+        form = UpdatePersonForm()
+        if request.method == 'GET':
+            form.id.data = id
+            person = models.get_person(id)
+            if person:
+                form.username.data = person.username
+                form.firstname.data = person.first_name
+                form.lastname.data = person.last_name
+                form.birthdate.data = person.birth_date
+                form.phone_number.data = person.phone_number
+                form.profession.data = person.profession
+                form.is_admin.data = person.is_admin
+        if form.validate_on_submit():
+            try:
+                models.update_person(person_id=form.id.data,
+                                    username=form.username.data,
+                                    password=form.password.data,
+                                    first_name=form.firstname.data,
+                                    last_name=form.lastname.data,
+                                    birth_date=form.birthdate.data,
+                                    phone_number=form.phone_number.data,
+                                    profession=form.profession.data,
+                                    is_admin=form.is_admin.data)
+                flash("Person erfolgreich aktualisiert")
+                return redirect(url_for('index'))
+            except:
+                flash("Fehler beim Aktualisieren der Person")
+        return render_template('person_aktualisieren.html', form=form)
+    flash("Keine Berechtigung zur Aktualisierung der Person")
+    return redirect(url_for('index'))
 
 @app.route('/persons/<int:id>', methods=['DELETE'])
 @login_required

@@ -1,3 +1,4 @@
+// Kontextmenü und Hover-Verhalten für Tabellen implementieren
 document.addEventListener("DOMContentLoaded", function () {
     let selectedRowID = null;
     let rows = document.querySelectorAll(".table-hover tbody tr");
@@ -45,22 +46,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Event-Listener für Kontextmenü-Actions
+    // Kontextemenü: Zur Depotübersicht
     let showDepositButton = document.getElementById('show-deposit');
     showDepositButton.addEventListener("click", function (event) {
         alert("Action: " + this.textContent + "\nRow ID: " + selectedRowID);
     });
+
+    // Kontextmenü: Bearbeiten
     let editPersonButton = document.getElementById('edit-person');
     editPersonButton.addEventListener("click", function (event) {
-        alert("Action: " + this.textContent + "\nRow ID: " + selectedRowID);
+        window.location.pathname = "/person_aktualisieren/" + selectedRowID;
     });
+    
+    // Kontextmenü: Löschen
     let deletePersonButton = document.getElementById('delete-person');
     deletePersonButton.addEventListener("click", function (event) {
         fetch(`/persons/${selectedRowID}`, {
             method: 'DELETE',
         })
         .then(response => {
-            console.log('hab einen response', response);
             if (response.status === 204) {
                 window.location.href = "/index";
             } else if (response.status === 302) {
