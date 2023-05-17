@@ -7,9 +7,6 @@ from flask_login import current_user, login_required, login_user, logout_user
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    if current_user.is_admin:
-        persons = models.get_all_persons()
-        return render_template('index.html', title='Home', persons=persons)
     user = {'username': 'Miguel'}
     posts = [
         {
@@ -21,6 +18,10 @@ def index():
             'body': 'The Avengers movie was so cool!'
         }
     ]
+    if current_user.is_admin:
+        persons = models.get_all_persons()
+        return render_template('index.html', title='Home', persons=persons)
+
     return render_template('index.html', title='Home', user=user, posts=posts)
 
 @app.route('/login', methods=['GET', 'POST'])

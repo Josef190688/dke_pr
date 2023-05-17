@@ -15,4 +15,13 @@
     margin: 10px 0;
   }
   
+  hr.dotted-divider-full {
+    border: 0;
+    height: 2px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.2));
+    background-size: 100% 2px;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin: 10px 0;
+  }
   

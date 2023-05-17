@@ -7,11 +7,18 @@
 </div>
 {% endfor %}
 {% if current_user.is_admin %}
-<div style="margin: 5%;">
+<div style="margin: 5%; margin-top: 0%">
+    <hr class="dotted-divider-full">
     <h2>Admin Funktionen</h2>
-    <p><a href="{{ url_for('person_erstellen') }}"><button>Person erstellen</button></a></p>
-    <p><a href="{{ url_for('personen_einfuegen') }}"><button>Testdaten einfügen</button></a></p>
-    <hr>
+    <div class="row">
+        <div class="col-md-1" style="margin: 5px;">
+            <p><a href="{{ url_for('person_erstellen') }}"><button class="btn btn-primary">Person erstellen</button></a></p>
+        </div>
+        <div class="col-md-1" style="margin: 5px;">
+            <p><a href="{{ url_for('personen_einfuegen') }}"><button class="btn btn-primary">Testdaten einfügen</button></a></p>
+        </div>
+    </div>
+    <hr class="dotted-divider-full">
     <h1>Personen-Übersicht</h1>
     <!-- Kontext-Menü -->
     <div class="btn-group d-md-none m-1">

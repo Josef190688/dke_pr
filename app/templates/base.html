@@ -20,14 +20,14 @@
         {% endif %}
         <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='main.css')}}">
     </head>
-    <body>
-        <div style="display: flex; justify-content: flex-end;">
+    {% block body %}
+        <div style="display: flex; justify-content: flex-end; margin-left: 5%; margin-right: 5%; margin-top: 1%;">
             Depotverwaltung:
-            <a style="margin-left: 0;" href="{{ url_for('index') }}">Home</a>
+            <a style="margin-left: 5px;" href="{{ url_for('index') }}">Home</a>
             {% if current_user.is_anonymous %}
-                <a href="{{ url_for('login') }}">Login</a>
+                <a style="margin-left: 5px;" href="{{ url_for('login') }}">Login</a>
             {% else %}
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <a style="margin-left: 5px;" href="{{ url_for('logout') }}">Logout</a>
             {% endif %}
             <p style="margin-left: auto;"></p>
             {% if not current_user.is_anonymous %}
@@ -38,7 +38,6 @@
             {% endif %}
             </p>
         </div>
-        <hr>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
         <ul>
@@ -50,5 +49,5 @@
         {% endwith %}
         {% block content %}{% endblock %}
         
-    </body>
+    {% endblock %}
 </html>
