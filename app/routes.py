@@ -155,3 +155,16 @@ def personen_einfuegen():
         flash("Fehler beim Erstellen der Test-Personen")
     
     return redirect(url_for('index'))
+
+@app.route('/depots/<int:id>', methods=['GET', 'POST'])
+@login_required
+def depots(id):
+    try:
+        person = models.get_person(id)
+        if current_user.is_admin:
+            depots = person.deposits
+            return render_template('depots.html', title='Depotübersicht', person=person, depots=depots)
+
+        return render_template('depots.html', title='Depotübersicht')
+    except Exception as e:
+        print(e)

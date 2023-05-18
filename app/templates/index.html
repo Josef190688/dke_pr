@@ -11,10 +11,10 @@
     <hr class="dotted-divider-full">
     <h2>Admin Funktionen</h2>
     <div class="row">
-        <div class="col-md-1" style="margin: 5px;">
+        <div class="col-md-1" style="margin: 3px;">
             <p><a href="{{ url_for('person_erstellen') }}"><button class="btn btn-primary">Person erstellen</button></a></p>
         </div>
-        <div class="col-md-1" style="margin: 5px;">
+        <div class="col-md-1" style="margin: 3px;">
             <p><a href="{{ url_for('personen_einfuegen') }}"><button class="btn btn-primary">Testdaten einfügen</button></a></p>
         </div>
     </div>
@@ -71,9 +71,7 @@
             {% endfor %}
         </tbody>
     </table>
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
 </div>
 {% endif %}
 {% endblock %}
-
-

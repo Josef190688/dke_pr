@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if current_user.is_admin %}
+
+<div style="margin: 5%; margin-top: 0%">
+    <hr class="dotted-divider-full">
+    <h2>Admin Funktionen</h2>
+    <!-- Kontext-Menü -->
+    <div class="dropdown">
+        <button id="depotErstellenButton" class="btn btn-primary dropdown-toggle" style="margin: 5px;" type="button" id="dropdownMenuButton"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Depot erstellen
+        </button>
+        <form id="dropdown_form" class="dropdown-menu p-4">
+            <div class="form-group" style="margin: 7%; margin-bottom: 0;">
+                <input type="text" class="form-control" id="depotNameInput" placeholder="Name des Depots">
+            </div>
+            <button style="margin: 7%;" type="submit" class="btn btn-primary" id="erstellen" onclick="depotErstellen()" disabled>erstellen</button>
+        </form>
+    </div>
+    <hr class="dotted-divider-full">
+    <h1 style="align-items: flex-end;">Depotübersicht</h1>
+    <h4 style="align-items: flex-end;">ID {{ person.person_id }} - {{ person.first_name }} {{ person.last_name }}</h4>
+    {% if not depots %}
+    <br>
+    <div class="alert alert-info" role="alert">
+        Es sind keine Depots vorhanden.
+    </div>
+    {% else %}
+    <!-- Depot-Tabelle -->
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>Depotname</th>
+                <th>Gesamtwert</th>
+            </tr>
+        </thead>
+    </table>
+    {% endif %}
+    <script src="{{ url_for('static', filename='depot_erstellen_validierung.js') }}"></script>
+    <script>
+        let depotNameInput = document.getElementById("depotNameInput");
+        let createDepotButton = document.getElementById("depotErstellenButton");
+        let erstellenButton = document.getElementById("erstellen");
+
+        depotNameInput.addEventListener("input", function() {
+            erstellenButton.disabled = this.value.trim().length === 0;
+        });
+        createDepotButton.addEventListener("click", function() {
+            if (createDepotButton.getAttribute("aria-expanded") === "false") {
+                depotNameInput.value = "";
+            }
+        })
+
+        erstellenButton.onclick = function(event) {
+            event.preventDefault()
+            console.log("erstellen")
+        }
+
+    </script>
+    {% endif %}
+    {% endblock %}

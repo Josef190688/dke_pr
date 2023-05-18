@@ -129,6 +129,18 @@ def delete_person(person_id):
 
 #TODO: CRUD Depotübersicht
 # ------------------------------------------------------------------------------------------
+# CREATE
+def create_deposit(deposit_name, person_id):
+    try:
+        deposit = Deposit(deposit_name=deposit_name, deposits_person_id=person_id)
+        db.session.add(deposit)
+        db.session.commit()
+        return deposit
+    except:
+        db.session.rollback()
+        return None
+    
+# READ
 
 
 #TODO: CRUD Depotpositionen
