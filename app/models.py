@@ -1,3 +1,4 @@
+from typing import Union
 from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -50,6 +51,13 @@ class Deposit(db.Model):
 
     person = db.relationship('Person', backref='deposits')
 
+    def to_dict(self):
+        return {
+            'deposit_id': self.deposit_id,
+            'deposit_name': self.deposit_name,
+            'deposits_person_id': self.deposits_person_id
+        }
+
 class SecuritiesPosition(db.Model):
     __tablename__ = 'securities_position'
 
@@ -65,7 +73,7 @@ class SecuritiesPosition(db.Model):
 # CRUD Personenverwaltung
 # ------------------------------------------------------------------------------------------
 # CREATE
-def create_person(username, password, first_name, last_name, birth_date, phone_number, profession, is_admin):
+def create_person(username, password, first_name, last_name, birth_date='', phone_number='', profession='', is_admin=False):
     try:
         account = Account()
         db.session.add(account)
@@ -78,7 +86,7 @@ def create_person(username, password, first_name, last_name, birth_date, phone_n
         db.session.rollback()
 
 # READ
-def get_person(person_id):
+def get_person(person_id) -> Union[Person, None]:
     return Person.query.filter_by(person_id=person_id).first()
 
 def get_persons_by_filter(filter):
@@ -130,18 +138,32 @@ def delete_person(person_id):
 #TODO: CRUD Depotübersicht
 # ------------------------------------------------------------------------------------------
 # CREATE
-def create_deposit(deposit_name, person_id):
+def create_deposit(person_id, deposit_name):
     try:
         deposit = Deposit(deposit_name=deposit_name, deposits_person_id=person_id)
         db.session.add(deposit)
         db.session.commit()
         return deposit
-    except:
+    except Exception as e:
+        print(e)
         db.session.rollback()
         return None
     
 # READ
+def get_deposit(deposit_id: int) -> Union[Deposit, None]:
+    return Deposit.query.filter_by(deposit_id=deposit_id).first()
 
+# DELETE
+def delete_deposit(deposit_id):
+    try:
+        deposit = get_deposit(deposit_id)
+        if not deposit:
+            return False
+        db.session.delete(deposit)
+        db.session.commit()
+        return True
+    except:
+        return False
 
 #TODO: CRUD Depotpositionen
 # ------------------------------------------------------------------------------------------

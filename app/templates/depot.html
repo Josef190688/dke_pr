@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if current_user.is_admin %}
+    <h2>Admin Funktionen</h2>
+    <div class="admin-functions-container">
+        <button class="btn btn-primary" id="wertpapiereKaufen">Wertpapiere kaufen</button>
+    </div>
+    <hr class="dotted-divider-full" style="margin-top: 20px;">
+    {% endif %}
+    <h1>{{ person.username }} {{ deposit.deposit_name }} </h1>
+
+    {% if current_user.is_admin %}
+    <script>
+        let kaufenButton = document.getElementById("wertpapiereKaufen");
+
+        kaufenButton.onclick = function (event) {
+            event.preventDefault();
+            fetch('http://127.0.0.1:50051/firmen/wertpapiere', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                })
+                .then(response => response.json())
+                .then(json => {
+                    console.log(json);
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+            }
+    </script>
+    {% endif %}
+{% endblock %}

@@ -1,33 +1,62 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% if current_user.is_admin %}
-
-<div style="margin: 5%; margin-top: 0%">
-    <hr class="dotted-divider-full">
+    <!-- Admin Funktionen -->
+    {% if current_user.is_admin %}
     <h2>Admin Funktionen</h2>
-    <!-- Kontext-Menü -->
-    <div class="dropdown">
-        <button id="depotErstellenButton" class="btn btn-primary dropdown-toggle" style="margin: 5px;" type="button" id="dropdownMenuButton"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Depot erstellen
-        </button>
-        <form id="dropdown_form" class="dropdown-menu p-4">
-            <div class="form-group" style="margin: 7%; margin-bottom: 0;">
-                <input type="text" class="form-control" id="depotNameInput" placeholder="Name des Depots">
-            </div>
-            <button style="margin: 7%;" type="submit" class="btn btn-primary" id="erstellen" onclick="depotErstellen()" disabled>erstellen</button>
-        </form>
+    <div class="admin-functions-container">
+        <!-- Button "Depot erstellen" + Kontextmenü -->
+        <div class="dropdown">
+            <button id="depotErstellenButton" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Depot erstellen
+            </button>
+            <form id="dropdown_form" class="dropdown-menu p-4">
+                <div class="form-group" style="margin: 7%; margin-bottom: 0;">
+                    <input type="text" class="form-control" id="depotNameInput" placeholder="Name des Depots">
+                </div>
+                <button style="margin: 7%;" type="submit" class="btn btn-primary" id="erstellen" onclick="depotErstellen()" disabled>erstellen</button>
+            </form>
+        </div>
     </div>
-    <hr class="dotted-divider-full">
+    <hr class="dotted-divider-full" style="margin-top: 20px;">
+
     <h1 style="align-items: flex-end;">Depotübersicht</h1>
+    {% endif %}
+
+    <!-- Name des Inhabers der Depots -->
+    {% if current_user.is_admin %}
     <h4 style="align-items: flex-end;">ID {{ person.person_id }} - {{ person.first_name }} {{ person.last_name }}</h4>
-    {% if not depots %}
+    {% else %}
+    <h4 style="align-items: flex-end;">{{ person.first_name }} {{ person.last_name }}</h4>
+    {% endif %}
+
+    <!-- Infotext, wenn keine Depots vorhanden -->
+    {% if not deposits %}
     <br>
     <div class="alert alert-info" role="alert">
         Es sind keine Depots vorhanden.
     </div>
     {% else %}
+    <!-- Kontext-Menü zur Tabelle, wenn Depots vorhanden -->
+    <div class="btn-group d-md-none m-1">
+        <button id="context-menu-button" class="btn dropdown-toggle"
+            type="button"
+            data-toggle="dropdown"
+            data-boundary="window"
+            aria-expanded="false"
+            style="visibility: hidden;">
+            <span class="glyphicon glyphicon-option-vertical"></span>
+    </button>
+        <ul id="context-menu" class="dropdown-menu">
+            <li><a id="show_deposit" href="#">Zum Depot</a></li>
+            <!-- Update und Delete nur für Admins -->
+            {% if current_user.is_admin %}
+            <li><a id="rename_deposit" href="#">Umbenennen</a></li>
+            <li id="delete_deposit_li"><a id="delete_deposit" href="#">Löschen</a></li>
+            {% endif %}
+        </ul>
+    </div>
     <!-- Depot-Tabelle -->
     <table class="table table-hover table-condensed">
         <thead>
@@ -36,28 +65,179 @@
                 <th>Gesamtwert</th>
             </tr>
         </thead>
+        <tbody>
+            {% for deposit in deposits %}
+            {% if deposit.securities_positions %}
+            <tr data-row-id="{{ deposit.deposit_id }}", data-has-positions="TRUE">
+            {% else %}
+            <tr data-row-id="{{ deposit.deposit_id }}", data-has-positions="FALSE">
+            {% endif %}
+                <td style="vertical-align: middle;">{{ deposit.deposit_name }}</td>
+                <td style="vertical-align: middle;">EUR 0,00</td>
+                <input type="hidden" class="has-positions" value="{{ deposit.securities_positions }}">
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
     {% endif %}
-    <script src="{{ url_for('static', filename='depot_erstellen_validierung.js') }}"></script>
+    {% if current_user.is_admin %}
     <script>
+        // Depot erstellen
+        // ============================================================================
         let depotNameInput = document.getElementById("depotNameInput");
         let createDepotButton = document.getElementById("depotErstellenButton");
         let erstellenButton = document.getElementById("erstellen");
 
-        depotNameInput.addEventListener("input", function() {
+        depotNameInput.addEventListener("input", function () {
             erstellenButton.disabled = this.value.trim().length === 0;
         });
-        createDepotButton.addEventListener("click", function() {
+        createDepotButton.addEventListener("click", function () {
             if (createDepotButton.getAttribute("aria-expanded") === "false") {
                 depotNameInput.value = "";
             }
         })
 
-        erstellenButton.onclick = function(event) {
-            event.preventDefault()
-            console.log("erstellen")
-        }
+        erstellenButton.onclick = function (event) {
+            event.preventDefault();
 
+            depositName = depotNameInput.value;
+            let data = {
+                "deposit_name": depositName
+            };
+
+            fetch(`/api/personen/{{ person.person_id }}/depots`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log("Depot erfolgreich erstellt");
+                    } else {
+                        console.error("Fehler beim Erstellen des Depots");
+                    }
+                    window.location.href = "/depots/{{ person.person_id }}";
+                })
+                .catch(error => {
+                    alert("Fehler beim Erstellen des Depots", error);
+                    window.location.href = "/depots/{{ person.person_id }}";
+                });
+        };
+    </script>
+    {% endif %}
+    {% if deposits %}
+    <script>
+        // Kontextmenü und Hover-Verhalten für Tabelle implementieren
+        // ============================================================================
+        document.addEventListener("DOMContentLoaded", function () {
+            let selectedRowID = null;
+            let rows = document.querySelectorAll(".table-hover tbody tr");
+            let contextMenu = document.getElementById('context-menu');
+
+            rows.forEach(function (row) {
+                row.addEventListener("click", function (event) {
+                    let id = this.getAttribute("data-row-id");
+                    let hasPositions = (this.getAttribute("data-has-positions") === "TRUE");
+                    if (id === selectedRowID) {
+                        selectedRowID = null;
+                        contextMenu.style.display = 'none';
+                        rows.forEach(function (row) {
+                            row.classList.remove("active");
+                        });
+                    } else {
+                        selectedRowID = id;
+                        let buttonBoundaries = document.getElementById("context-menu-button").getBoundingClientRect();
+                        contextMenu.style.display = 'block';
+                        contextMenu.style.left = event.pageX - buttonBoundaries.left + window.pageXOffset + 'px';
+                        contextMenu.style.top = event.pageY - buttonBoundaries.top - window.pageYOffset + 'px';
+                        rows.forEach(function (row) {
+                            row.classList.remove("active");
+                        });
+                        this.classList.add("active");
+
+                        let deleteDepositButton = document.getElementById('delete_deposit_li');
+                        if (deleteDepositButton) {
+                            if (hasPositions) {
+                                deleteDepositButton.classList.add("disabled");
+                            } else {
+                                deleteDepositButton.classList.remove("disabled");
+                            }
+                        }
+                    }
+                });
+            });
+
+            document.addEventListener("click", function (event) {
+                let isClickedInsideRow = false;
+                let target = event.target;
+                while (target.parentNode) {
+                    if (target.matches(".table-hover tbody tr")) {
+                        isClickedInsideRow = true;
+                        break;
+                    }
+                    target = target.parentNode;
+                }
+                if (!isClickedInsideRow) {
+                    contextMenu.style.display = 'none';
+                    selectedRowID = null;
+                    rows.forEach(function (row) {
+                        row.classList.remove("active");
+                    });
+                }
+            });
+
+            // Kontextemenü: Zum Depot
+            let showDepositButton = document.getElementById('show_deposit');
+            if (showDepositButton) {
+                showDepositButton.addEventListener("click", function (event) {
+                    if ('{{ current_user.is_admin }}' === 'True') {
+                        // Admin navigiert zum Depot einer bestimmten Person
+                        window.location.href = "/personen/{{ person.person_id }}/depots/" + selectedRowID;
+                    } else {
+                        // User navigiert zu seinem eigenen Depot
+                        window.location.href = "/depots/" + selectedRowID;
+                    }
+                });
+            }
+
+            // Kontextmenü: Umbenennen
+            let renameDepositButton = document.getElementById('rename_deposit');
+            if (renameDepositButton) {
+                renameDepositButton.addEventListener("click", function (event) {
+                // TODO umbenennen
+            });
+            }
+            
+            // Kontextmenü: Löschen
+            let deleteDepositButton = document.getElementById('delete_deposit');
+            if (deleteDepositButton) {
+                deleteDepositButton.addEventListener("click", function (event) {
+                    if (event.target.parentNode && event.target.parentNode.getAttribute("data-has-positions") === "TRUE") {
+                        alert("Löschen nicht möglich, da das Depot Positionen enthält.");
+                    } else {
+                        let confirmDelete = confirm("Sind Sie sicher, dass Sie das Depot löschen möchten?");
+                        if (confirmDelete) {
+                            fetch(`/api/personen/{{ person.person_id }}/depots/${selectedRowID}`, {
+                                method: 'DELETE',
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    console.log("Depot erfolgreich gelöscht");
+                                    window.location.reload();
+                                } else {
+                                    console.error("Fehler beim Löschen des Depots");
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Fehler beim Löschen des Depots:", error);
+                            });
+                        }
+                    }
+                });
+            }
+        });
     </script>
     {% endif %}
     {% endblock %}

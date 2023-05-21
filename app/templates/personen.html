@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if current_user.is_admin %}
+<!-- Admin-Funktionen -->
+<h2>Admin Funktionen</h2>
+<div class="admin-functions-container">
+    <a href="{{ url_for('person_erstellen') }}"><button class="btn btn-primary">Person erstellen</button></a>
+    <a href="{{ url_for('personen_einfuegen') }}"><button class="btn btn-primary">Testdaten einfügen</button></a>
+</div>
+<hr class="dotted-divider-full" style="margin-top: 20px;">
+<h1>Personen-Übersicht</h1>
+
+<!-- Suchfeld -->
+<div class="form-group">
+    <input type="text" class="form-control" id="table-filter" placeholder="Suche...">
+</div>
+
+<!-- Tabelle Kontext-Menü -->
+<div class="btn-group d-md-none m-1">
+    <button id="context-menu-button" class="btn dropdown-toggle" type="button" data-toggle="dropdown"
+        data-boundary="window" aria-expanded="false" style="visibility: hidden;">
+        <span class="glyphicon glyphicon-option-vertical"></span>
+    </button>
+    <ul id="context-menu" class="dropdown-menu">
+        <li><a id="show-deposit" href="#">Zur Depotübersicht</a></li>
+        <li><a id="edit-person" href="#">Bearbeiten</a></li>
+        <li><a id="delete-person" href="#">Löschen</a></li>
+    </ul>
+</div>
+<!-- Personen-Tabelle -->
+<table id="my-table" class="table table-hover table-condensed">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Benutzername</th>
+            <th>Vorname</th>
+            <th>Nachname</th>
+            <th>Geburtsdatum</th>
+            <th>Telefonnummer</th>
+            <th>Beruf</th>
+            <th>Administrator</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for person in persons %}
+        <tr data-row-id="{{ person.person_id }}">
+            <td style="vertical-align: middle;">{{ person.person_id }}</td>
+            <td style="vertical-align: middle;">{{ person.username }}</td>
+            <td style="vertical-align: middle;">{{ person.first_name }}</td>
+            <td style="vertical-align: middle;">{{ person.last_name }}</td>
+            <td style="vertical-align: middle;">{{ person.birth_date.strftime('%d.%m.%Y') if person.birth_date else ''
+                }}</td>
+            <td style="vertical-align: middle;">{{ person.phone_number if person.phone_number else '' }}</td>
+            <td style="vertical-align: middle;">{{ person.profession if person.profession else '' }}</td>
+            <td style="vertical-align: middle;">
+                {% if person.is_admin %}
+                <input type="checkbox" name="is_admin" value="1" checked disabled>
+                {% else %}
+                <input type="checkbox" name="is_admin" value="0" disabled>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script src="{{ url_for('static', filename='tbl_ctx_persons.js') }}"></script>
+<script>
+    var highlightedCells = [];
+
+    // Filterfunktion für die Tabelle
+    function filterTable() {
+        var input = document.getElementById("table-filter");
+        var filter = input.value.toLowerCase();
+        var filterTerms = filter.split(" ");
+        var table = document.getElementById("my-table");
+        var rows = table.getElementsByTagName("tr");
+
+        // Entfernen der vorherigen Markierungen
+        removeHighlight();
+
+        for (var i = 0; i < rows.length; i++) {
+            var cell2 = rows[i].getElementsByTagName("td")[1]; // Zweite Spalte
+            var cell3 = rows[i].getElementsByTagName("td")[2]; // Dritte Spalte
+            var cell4 = rows[i].getElementsByTagName("td")[3]; // Vierte Spalte
+
+            if (cell2 && cell3 && cell4) {
+                var text2 = cell2.innerText.toLowerCase();
+                var text3 = cell3.innerText.toLowerCase();
+                var text4 = cell4.innerText.toLowerCase();
+
+                var match2 = text2.indexOf(filter) > -1;
+                var match3 = text3.indexOf(filter) > -1;
+                var match4 = text4.indexOf(filter) > -1;
+
+                if (filter === "") {
+                    rows[i].style.display = "";
+                } else if (match2 || match3 || match4) {
+                    rows[i].style.display = "";
+                    highlightMatch(cell2, match2);
+                    highlightMatch(cell3, match3);
+                    highlightMatch(cell4, match4);
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    // Funktion zum Markieren der Übereinstimmung
+    function highlightMatch(cell, isMatch) {
+        if (isMatch) {
+            var text = cell.innerHTML;
+            var highlightedText = text.replace(
+                new RegExp("(" + escapeRegExp(input.value) + ")", "gi"),
+                "<mark>$1</mark>"
+            );
+            cell.innerHTML = highlightedText;
+            highlightedCells.push(cell);
+        }
+    }
+
+    // Funktion zum Entfernen der Markierungen
+    function removeHighlight() {
+        for (var i = 0; i < highlightedCells.length; i++) {
+            var cell = highlightedCells[i];
+            var text = cell.innerHTML;
+            var unhighlightedText = text.replace(/<mark>/gi, "").replace(/<\/mark>/gi, "");
+            cell.innerHTML = unhighlightedText;
+        }
+        highlightedCells = [];
+    }
+
+    // Hilfsfunktion zum Escapen von Sonderzeichen in einem regulären Ausdruck
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    // Ereignislistener für die Eingabe im Texteingabefeld
+    var input = document.getElementById("table-filter");
+    input.addEventListener("input", filterTable);
+</script>
+
+{% endif %}
+{% endblock %}

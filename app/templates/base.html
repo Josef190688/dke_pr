@@ -47,8 +47,12 @@
         </ul>
         {% endif %}
         {% endwith %}
-        {% block content %}{% endblock %}
-    
+
+        <div style="margin: 5%; margin-top: 0%">
+            <hr class="dotted-divider-full">
+            {% block content %}{% endblock %}
+        </div>
+
         {% block scripts %}
             {{ super() }}
         {% endblock %}   

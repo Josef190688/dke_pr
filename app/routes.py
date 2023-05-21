@@ -7,34 +7,34 @@ from flask_login import current_user, login_required, login_user, logout_user
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    user = {'username': 'Miguel'}
-    posts = [
-        {
-            'author': {'username': 'John'},
-            'body': 'Beautiful day in Portland!'
-        },
-        {
-            'author': {'username': 'Susan'},
-            'body': 'The Avengers movie was so cool!'
-        }
-    ]
+    # user = {'username': 'Miguel'}
+    # posts = [
+    #     {
+    #         'author': {'username': 'John'},
+    #         'body': 'Beautiful day in Portland!'
+    #     },
+    #     {
+    #         'author': {'username': 'Susan'},
+    #         'body': 'The Avengers movie was so cool!'
+    #     }
+    # ]
     if current_user.is_admin:
         persons = models.get_all_persons()
-        return render_template('index.html', title='Home', persons=persons)
+        return render_template('personen.html', title='Home', persons=persons)
 
-    return render_template('index.html', title='Home', user=user, posts=posts)
+    return redirect(url_for('depot_uebersicht'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     try:
-        models.create_user(
+        models.create_person(
             username="admin",
             password="123",
             first_name="Josef",
             last_name="Landmann",
             is_admin=True
         )
-        models.create_user(
+        models.create_person(
             username="max",
             password="123",
             first_name="Max",
@@ -42,12 +42,10 @@ def login():
             birth_date="1980-01-01",
             phone_number="+49123456789",
             profession="Software Engineer",
-            is_admin=False,
-            account_balance_in_euro=5000.0,
-            displayed_currency="EUR"
+            is_admin=False
         )
-    except:
-        print("create user failed")
+    except Exception as e:
+        print(e)
         
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -122,18 +120,6 @@ def update_person_details(id):
     flash("Keine Berechtigung zur Aktualisierung der Person")
     return redirect(url_for('index'))
 
-@app.route('/persons/<int:id>', methods=['DELETE'])
-@login_required
-def delete_person(id):
-    if current_user.is_admin:
-        try:
-            models.delete_person(id)
-            flash("Person erfolgreich gelöscht")
-            return make_response('', 204)
-        except:
-            flash("Person löschen nicht erfolgreich")
-    return redirect(url_for('index'))
-
 @app.route('/personen_einfuegen', methods=['GET'])
 @login_required
 def personen_einfuegen():
@@ -156,15 +142,39 @@ def personen_einfuegen():
     
     return redirect(url_for('index'))
 
-@app.route('/depots/<int:id>', methods=['GET', 'POST'])
+# Depots der eingeloggten Person
+@app.route('/depots', methods=['GET'])
+@login_required
+def depot_uebersicht():
+    try:
+        person = models.get_person(current_user.person_id)
+        deposits = person.deposits
+        return render_template('depots.html', title='Depotübersicht', person=person, deposits=deposits)
+    except Exception as e:
+        print(e)
+
+# TODO eliminieren, unlogisch
+@app.route('/depots/<int:id>', methods=['GET'])
 @login_required
 def depots(id):
     try:
         person = models.get_person(id)
         if current_user.is_admin:
-            depots = person.deposits
-            return render_template('depots.html', title='Depotübersicht', person=person, depots=depots)
+            deposits = person.deposits
+            return render_template('depots.html', title='Depotübersicht', person=person, deposits=deposits)
 
         return render_template('depots.html', title='Depotübersicht')
+    except Exception as e:
+        print(e)
+
+# Depot einer Person (nur für Admin)
+@app.route('/personen/<int:person_id>/depots/<int:depot_id>', methods=['GET'])
+@login_required
+def depositByPerson(person_id, depot_id):
+    try:
+        person = models.get_person(person_id)
+        if current_user.is_admin:
+            deposit = models.get_deposit(depot_id)
+            return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit)
     except Exception as e:
         print(e)

@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Kontextmenü: Löschen
     let deletePersonButton = document.getElementById('delete-person');
     deletePersonButton.addEventListener("click", function (event) {
-        fetch(`/persons/${selectedRowID}`, {
+        fetch(`/api/personen/${selectedRowID}`, {
             method: 'DELETE',
         })
         .then(response => {
