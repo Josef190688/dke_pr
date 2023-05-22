@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div style="margin: 5%;"></div>
+<div style="margin: 2%;"></div>
 <h1 style="margin: 0 20%;">Person erstellen</h1>
 <br>
 <hr class="dotted-divider">
@@ -87,13 +87,11 @@
         </div>
     </div>
 
-
     <br>
 
     <div class="form-group mt-4">
         {{ form.submit(class="btn btn-primary") }}
         <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
-
     </div>
 </form>
 </div>
