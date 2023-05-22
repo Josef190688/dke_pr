@@ -1,66 +1,107 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Person aktualisieren</h1>
-    <form action="" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.id.label }}<br>
-            {{ form.id(size=32) }}<br>
+<div style="margin: 2%;"></div>
+<h1 style="margin: 0 20%;">Person aktualisieren</h1>
+<br>
+<hr class="dotted-divider">
+<br>
+<br>
+<form class="form-horizontal" action="" method="post" novalidate style="margin: 0 20%;">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.id.label }}</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.id(class="form-control") }}</div>
+            {% for error in form.id.errors %}
+            <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.username.label }} *</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.username(class="form-control") }}</div>
             {% for error in form.username.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+            <span class="text-danger">{{ error }}</span>
             {% endfor %}
-        </p>
-        <p>
-            {{ form.username.label }}<br>
-            {{ form.username(size=32) }}<br>
-            {% for error in form.username.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(size=32) }}<br>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.password.label }}</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.password(class="form-control") }}</div>
             {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+            <span class="text-danger">{{ error }}</span>
             {% endfor %}
-        </p>
-        <p>
-            {{ form.firstname.label }}<br>
-            {{ form.firstname(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.firstname.label }} *</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.firstname(class="form-control") }}</div>
+            {% for error in form.firstname.errors %}
+            <span class="text-danger">{{ error }}</span>
             {% endfor %}
-        </p>
-        <p>
-            {{ form.lastname.label }}<br>
-            {{ form.lastname(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.lastname.label }} *</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.lastname(class="form-control") }}</div>
+            {% for error in form.lastname.errors %}
+            <span class="text-danger">{{ error }}</span>
             {% endfor %}
-        </p>
-        <p>
-            {{ form.birthdate.label }}<br>
-            {{ form.birthdate(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.birthdate.label }}</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.birthdate(class="form-control") }}</div>
+            {% for error in form.birthdate.errors %}
+            <span class="text-danger">{{ error }}</span>
             {% endfor %}
-        </p>
-        <p>
-            {{ form.phone_number.label }}<br>
-            {{ form.phone_number(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.phone_number.label }}</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.phone_number(class="form-control") }}</div>
+            {% for error in form.phone_number.errors %}
+            <span class="text-danger">{{ error }}</span>
             {% endfor %}
-        </p>
-        <p>
-            {{ form.profession.label }}<br>
-            {{ form.profession(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.profession.label }}</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.profession(class="form-control") }}</div>
+            {% for error in form.profession.errors %}
+            <span class="text-danger">{{ error }}</span>
             {% endfor %}
-        </p>
-        <p>{{ form.is_admin() }} {{ form.is_admin.label }}</p>
-        <p>{{ form.submit() }}</p>
-    </form>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">{{ form.is_admin.label }}</label>
+        <div class="col-xs-8">
+            <div class="form-group">{{ form.is_admin(class="form-control") }}</div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="form-group mt-4">
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Abbrechen</a>
+    </div>
+</form>
 {% endblock %}
