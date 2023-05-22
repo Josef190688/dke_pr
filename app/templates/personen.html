@@ -89,35 +89,58 @@
                 var text3 = cell3.innerText.toLowerCase();
                 var text4 = cell4.innerText.toLowerCase();
 
-                var match2 = text2.indexOf(filter) > -1;
-                var match3 = text3.indexOf(filter) > -1;
-                var match4 = text4.indexOf(filter) > -1;
+                let isMatch = false;
 
                 if (filter === "") {
                     rows[i].style.display = "";
-                } else if (match2 || match3 || match4) {
-                    rows[i].style.display = "";
-                    highlightMatch(cell2, match2);
-                    highlightMatch(cell3, match3);
-                    highlightMatch(cell4, match4);
                 } else {
-                    rows[i].style.display = "none";
+                    const cellsAndTermsToHighligt = new Map();
+                    for (const term of filterTerms) {
+                        if (term !== "") {
+                            var match2 = text2.indexOf(term) > -1;
+                            var match3 = text3.indexOf(term) > -1;
+                            var match4 = text4.indexOf(term) > -1;
+                            if (!(match2 || match3 || match4)) {
+                                isMatch = false;
+                                break;
+                            } else {
+                                if (match2) {
+                                    cellsAndTermsToHighligt.set(cell2, term);
+                                    isMatch = true;
+                                }
+                                if (match3) {
+                                    cellsAndTermsToHighligt.set(cell3, term);
+                                    isMatch = true;
+                                }
+                                if (match4) {
+                                    cellsAndTermsToHighligt.set(cell4, term);
+                                    isMatch = true;
+                                }
+                            }
+                        }
+                    };
+                    if (isMatch) {
+                        rows[i].style.display = "";
+                        cellsAndTermsToHighligt.forEach((value, key) => {
+                            highlightMatch(key, value);
+                        });
+                    } else {
+                        rows[i].style.display = "none";
+                    }
                 }
             }
         }
     }
 
     // Funktion zum Markieren der Übereinstimmung
-    function highlightMatch(cell, isMatch) {
-        if (isMatch) {
-            var text = cell.innerHTML;
-            var highlightedText = text.replace(
-                new RegExp("(" + escapeRegExp(input.value) + ")", "gi"),
-                "<mark>$1</mark>"
-            );
-            cell.innerHTML = highlightedText;
-            highlightedCells.push(cell);
-        }
+    function highlightMatch(cell, filterTerm) {
+        var text = cell.innerHTML;
+        var highlightedText = text.replace(
+            new RegExp("(" + escapeRegExp(filterTerm) + ")", "gi"),
+            "<mark>$1</mark>"
+        );
+        cell.innerHTML = highlightedText;
+        highlightedCells.push(cell);
     }
 
     // Funktion zum Entfernen der Markierungen
