@@ -38,15 +38,15 @@
     <tbody>
         <tr>
             <td style="padding-right: 100px;">Konto-Vermögen</td>
-            <td class="text-right">EUR 153,14</td>
+            <td class="text-right">{{ person.account.displayed_currency }} {{ person.account.format_account_balance() }}</td>
         </tr>
         <tr>
             <td style="padding-right: 100px;">Depot-Vermögen</td>
-            <td class="text-right">EUR 2500,00</td>
+            <td class="text-right">{{ person.account.displayed_currency }} 2500,00</td>
         </tr>
         <tr style="border-top: 1px solid #ddd; font-weight: bold;">
             <td style="padding-right: 100px;">Gesamt-Vermögen</td>
-            <td class="text-right">EUR 2653,14</td>
+            <td class="text-right">{{ person.account.displayed_currency }} 2500,00</td>
         </tr>
     </tbody>
 </table>

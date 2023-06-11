@@ -13,6 +13,12 @@ class Account(db.Model):
     account_balance_in_euro = db.Column(db.Float, nullable=False, default=0.0)
     displayed_currency = db.Column(db.Enum('EUR', 'USD'), nullable=False, default='EUR')
 
+    def __str__(self):
+        return f'{self.displayed_currency} {self.format_account_balance()}'
+
+    def format_account_balance(self):
+        return f'{self.account_balance_in_euro:.2f}'.replace('.', ',')
+
 class Person(UserMixin, db.Model):
     __tablename__ = 'person'
 
