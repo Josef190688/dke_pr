@@ -4,12 +4,14 @@ rem und installiert alle nötigen Flask Abhängigkeiten.
 
 @echo on
 python -m venv venv
-icacls venv\Scripts\python.exe /grant %USERNAME%:(F)
+icacls "venv\Scripts\python.exe" /grant "$env:USERNAME":(F)  
 call venv\Scripts\activate
 python -m pip install --upgrade pip
 python -m pip install flask
 python -m pip install python-dotenv
+python -m pip install mysqlclient
 python -m pip install flask_login
+python -m pip install flask-bootstrap
 python -m pip install pipreqs
 python -m pipreqs .
 python -m pip install -r requirements.txt

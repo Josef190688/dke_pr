@@ -31,3 +31,15 @@ hr.dotted-divider-full {
 .admin-functions-container {
     margin-left: 5px;
 }
+
+#vermoegen-table.table,
+#vermoegen-table.table tr,
+#vermoegen-table.table th,
+#vermoegen-table.table td {
+    border: none;
+}
+
+#vermoegen-table {
+    width: auto !important;
+    display: inline-block;
+}
