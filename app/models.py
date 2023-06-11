@@ -18,6 +18,13 @@ class Account(db.Model):
 
     def format_account_balance(self):
         return f'{self.account_balance_in_euro:.2f}'.replace('.', ',')
+    
+    def update(self, displayed_currency=None, account_balance_in_euro=None):
+        if displayed_currency is not None:
+            self.displayed_currency = displayed_currency
+        if account_balance_in_euro is not None:
+            self.account_balance_in_euro = account_balance_in_euro
+        db.session.commit()
 
 class Person(UserMixin, db.Model):
     __tablename__ = 'person'

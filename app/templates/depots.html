@@ -19,6 +19,35 @@
                 disabled>erstellen</button>
         </form>
     </div>
+    <!-- Button "einzahlen" + Kontextmenü -->
+    <div class="dropdown">
+        <button id="einzahlenButton" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            einzahlen
+        </button>
+        <form id="dropdown_form" class="dropdown-menu p-4">
+            <div class="form-group" style="margin: 7%; margin-bottom: 0;">
+                <input type="text" class="form-control" id="einzahlenInput" placeholder="0,00">
+            </div>
+            <button style="margin: 7%;" type="submit" class="btn btn-primary" id="einzahlen" disabled>einzahlen</button>
+        </form>
+    </div>
+    <!-- Button "auszahlen" + Kontextmenü -->
+    {% if person.account.account_balance_in_euro > 0.0 %}
+    <div class="dropdown">
+        <button id="auszahlenButton" class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            auszahlen
+        </button>
+        <form id="dropdown_form" class="dropdown-menu p-4">
+            <div class="form-group" style="margin: 7%; margin-bottom: 0;">
+                <input type="text" class="form-control" id="auszahlenInput" placeholder="0,00">
+            </div>
+            <button style="margin: 7%;" type="submit" class="btn btn-primary" id="auszahlen" onclick="auszahlen()"
+                disabled>auszahlen</button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 <hr class="dotted-divider-full" style="margin-top: 20px;">
 
@@ -27,7 +56,8 @@
 
 <!-- Name des Inhabers der Depots -->
 {% if current_user.is_admin %}
-<h4 style="align-items: flex-end; padding-left: 10px;">ID {{ person.person_id }} - {{ person.first_name }} {{ person.last_name }}</h4>
+<h4 style="align-items: flex-end; padding-left: 10px;">ID {{ person.person_id }} - {{ person.first_name }} {{
+    person.last_name }}</h4>
 {% else %}
 <h4 style="align-items: flex-end; padding-left: 10px;">{{ person.first_name }} {{ person.last_name }}</h4>
 {% endif %}
@@ -38,7 +68,8 @@
     <tbody>
         <tr>
             <td style="padding-right: 100px;">Konto-Vermögen</td>
-            <td class="text-right">{{ person.account.displayed_currency }} {{ person.account.format_account_balance() }}</td>
+            <td class="text-right">{{ person.account.displayed_currency }} {{ person.account.format_account_balance() }}
+            </td>
         </tr>
         <tr>
             <td style="padding-right: 100px;">Depot-Vermögen</td>
@@ -138,6 +169,94 @@
             })
             .catch(error => {
                 alert("Fehler beim Erstellen des Depots", error);
+                window.location.href = "/depots/{{ person.person_id }}";
+            });
+    };
+</script>
+{% endif %}
+{% if current_user.is_admin %}
+<script>
+    // einzahlen
+    // ============================================================================
+    let einzahlenInput = document.getElementById("einzahlenInput");
+    let einzahlenButton = document.getElementById("einzahlenButton");
+    let einzahlenSubmitButton = document.getElementById("einzahlen");
+
+    einzahlenInput.addEventListener("input", function () {
+        einzahlenSubmitButton.disabled = !/^\d+([.,]\d{1,2})?$/.test(this.value.trim());
+    });
+    einzahlenButton.addEventListener("click", function () {
+        if (einzahlenButton.getAttribute("aria-expanded") === "false") {
+            einzahlenInput.value = "";
+        }
+    })
+
+    einzahlenSubmitButton.onclick = function (event) {
+        event.preventDefault();
+
+        einzahlenBetrag = einzahlenInput.value;
+        let data = {
+            "einzahlen": einzahlenBetrag
+        };
+
+        fetch(`/api/personen/{{ person.person_id }}/einzahlen`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.text())
+            .then(text => { 
+                console.log(text);
+                window.location.href = "/depots/{{ person.person_id }}";
+            })
+            .catch(error => {
+                console.log(error);
+                window.location.href = "/depots/{{ person.person_id }}";
+            });
+    };
+</script>
+{% endif %}
+{% if current_user.is_admin %}
+<script>
+    // auszahlen
+    // ============================================================================
+    let auszahlenInput = document.getElementById("auszahlenInput");
+    let auszahlenButton = document.getElementById("auszahlenButton");
+    let auszahlenSubmitButton = document.getElementById("auszahlen");
+
+    auszahlenInput.addEventListener("input", function () {
+        auszahlenSubmitButton.disabled = !/^\d+([.,]\d{1,2})?$/.test(this.value.trim());
+    });
+    auszahlenButton.addEventListener("click", function () {
+        if (einzahlenButton.getAttribute("aria-expanded") === "false") {
+            auszahlenInput.value = "";
+        }
+    })
+
+    auszahlenSubmitButton.onclick = function (event) {
+        event.preventDefault();
+
+        auszahlenBetrag = auszahlenInput.value;
+        let data = {
+            "auszahlen": auszahlenBetrag
+        };
+
+        fetch(`/api/personen/{{ person.person_id }}/auszahlen`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.text())
+            .then(text => { 
+                console.log(text);
+                window.location.href = "/depots/{{ person.person_id }}";
+            })
+            .catch(error => {
+                console.log(error);
                 window.location.href = "/depots/{{ person.person_id }}";
             });
     };

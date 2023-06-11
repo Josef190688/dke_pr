@@ -25,11 +25,13 @@ hr.dotted-divider-full {
     margin: 10px 0;
 }
 
-.admin-functions-container > :not(:last-child) {
-    margin-right: 5px;
+.admin-functions-container> :not(:last-child) {
+    margin-right: 10px;
 }
+
 .admin-functions-container {
     margin-left: 5px;
+    display: flex;
 }
 
 #vermoegen-table.table,
@@ -42,4 +44,22 @@ hr.dotted-divider-full {
 #vermoegen-table {
     width: auto !important;
     display: inline-block;
+}
+
+.ok {
+    background-color: #b6e8b6;
+    border-color: green;
+    color: #333;
+}
+
+.error {
+    background-color: #f8b6b6;
+    border-color: red;
+    color: #333;
+}
+
+.message {
+    background-color: #fff7b3;
+    border-color: #e6bf00;
+    color: #333;
 }

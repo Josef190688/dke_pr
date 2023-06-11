@@ -19,6 +19,59 @@ def delete_person(person_id):
             # flash("Person löschen nicht erfolgreich")
     return redirect(url_for('index'))
 
+# CRUD Konto
+# ------------------------------------------------------------------------------------------
+
+# UPDATE Konto
+@app.route('/api/personen/<int:person_id>/einzahlen', methods=['POST'])
+@login_required
+def einzahlen(person_id):
+    if current_user.is_admin:
+        try:
+            data = request.get_json()
+            einzahlen = data.get('einzahlen')
+            person = models.get_person(person_id)
+            if einzahlen and person:
+                amount = float(einzahlen)
+                account = person.account
+                account.update(account_balance_in_euro = account.account_balance_in_euro + amount)
+                response_text = 'EUR ' + str(amount) + ' erfolgreich eingezahlt'
+                flash(response_text, 'ok')
+                return make_response(response_text, 200)
+        except Exception as e:
+            return make_response(e.__str__, 400)
+    return redirect(url_for('index'))
+
+# UPDATE Konto
+@app.route('/api/personen/<int:person_id>/auszahlen', methods=['POST'])
+@login_required
+def auszahlen(person_id):
+    if current_user.is_admin:
+        try:
+            data = request.get_json()
+            auszahlen = data.get('auszahlen')
+            if not auszahlen:
+                raise Exception('\'auszahlen\' im Body erwartet, aber nicht gefunden')
+            person = models.get_person(person_id)
+            if not person:
+                raise Exception('Person mit der ID ' + person_id + ' nicht gefunden')
+            if person and auszahlen:
+                amount = float(auszahlen)
+                account = person.account
+                if account.account_balance_in_euro - amount < 0:
+                    response_text = 'EUR ' + str(amount) + ' zum Auszahlen zu hoch. Auf dem Konto befinden sich EUR ' + str(account.account_balance_in_euro)
+                    flash(response_text, 'error')
+                    return jsonify({'error': response_text}), 400
+                account.update(account_balance_in_euro = account.account_balance_in_euro - amount)
+                response_text = 'EUR ' + str(amount) + ' erfolgreich ausgezahlt'
+                flash(response_text, 'ok')
+                return make_response(response_text, 200)
+        except Exception as e:
+            flash(e.__str__, 'error')
+            print(e)
+            return make_response(e.__str__, 400)
+    return redirect(url_for('index'))
+
 # CRUD Depots
 # ------------------------------------------------------------------------------------------
 
@@ -32,7 +85,6 @@ def create_depot(person_id):
             if not person:
                 return jsonify({'error': 'Person not found'}), 404
 
-            # Hole die erforderlichen Daten aus dem Request Body
             data = request.get_json()
             deposit_name = data.get('deposit_name')
             # TODO auch andere werte (kontostand, displayed currency)
