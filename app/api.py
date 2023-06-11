@@ -12,11 +12,11 @@ def delete_person(person_id):
     if current_user.is_admin:
         try:
             models.delete_person(person_id)
-            # flash("Person erfolgreich gelöscht")
+            flash("Person erfolgreich gelöscht", 'success')
             return make_response('Person erfolgreich gelöscht', 204)
         except Exception as e:
             print(e)
-            # flash("Person löschen nicht erfolgreich")
+            flash("Person löschen nicht erfolgreich: " + e.__str__, 'danger')
     return redirect(url_for('index'))
 
 # CRUD Konto
@@ -36,7 +36,7 @@ def einzahlen(person_id):
                 account = person.account
                 account.update(account_balance_in_euro = account.account_balance_in_euro + amount)
                 response_text = 'EUR ' + str(amount) + ' erfolgreich eingezahlt'
-                flash(response_text, 'ok')
+                flash(response_text, 'success')
                 return make_response(response_text, 200)
         except Exception as e:
             return make_response(e.__str__, 400)
@@ -60,14 +60,14 @@ def auszahlen(person_id):
                 account = person.account
                 if account.account_balance_in_euro - amount < 0:
                     response_text = 'EUR ' + str(amount) + ' zum Auszahlen zu hoch. Auf dem Konto befinden sich EUR ' + str(account.account_balance_in_euro)
-                    flash(response_text, 'error')
+                    flash(response_text, 'danger')
                     return jsonify({'error': response_text}), 400
                 account.update(account_balance_in_euro = account.account_balance_in_euro - amount)
                 response_text = 'EUR ' + str(amount) + ' erfolgreich ausgezahlt'
-                flash(response_text, 'ok')
+                flash(response_text, 'success')
                 return make_response(response_text, 200)
         except Exception as e:
-            flash(e.__str__, 'error')
+            flash(e.__str__, 'danger')
             print(e)
             return make_response(e.__str__, 400)
     return redirect(url_for('index'))

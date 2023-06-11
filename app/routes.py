@@ -53,7 +53,7 @@ def login():
     if form.validate_on_submit():
         user = models.Person.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
+            flash('Ungültiger Username oder Passwort', 'danger')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         return redirect(url_for('index'))
@@ -78,10 +78,10 @@ def person_erstellen():
                                  form.phone_number.data,
                                  form.profession.data,
                                  form.is_admin.data)
-            flash(form.firstname.data + " " + form.lastname.data + " erfolgreich erstellt")
+            flash(form.firstname.data + " " + form.lastname.data + " erfolgreich erstellt", 'success')
             return redirect(url_for('index'))
-        except Exception as error:
-            flash("Person erstellen nicht erfolgreich")
+        except Exception as e:
+            flash("Person erstellen nicht erfolgreich: " + e.__str__, 'danger')
             return redirect(url_for('person_erstellen'))
     return render_template('person_erstellen.html', title='Person erstellen', form=form)
 
@@ -112,12 +112,12 @@ def update_person_details(id):
                                     phone_number=form.phone_number.data,
                                     profession=form.profession.data,
                                     is_admin=form.is_admin.data)
-                flash("Person erfolgreich aktualisiert")
+                flash("Person erfolgreich aktualisiert", 'success')
                 return redirect(url_for('index'))
-            except:
-                flash("Fehler beim Aktualisieren der Person")
+            except Exception as e:
+                flash("Fehler beim Aktualisieren der Person: " + e.__str__, 'danger')
         return render_template('person_aktualisieren.html', form=form)
-    flash("Keine Berechtigung zur Aktualisierung der Person")
+    flash("Keine Berechtigung zur Aktualisierung der Person", 'danger')
     return redirect(url_for('index'))
 
 @app.route('/personen_einfuegen', methods=['GET'])
@@ -136,9 +136,9 @@ def personen_einfuegen():
             is_admin = False
             models.create_person(username, password, first_name, last_name, birth_date, phone_number, profession, is_admin)
         
-        flash("Test-Personen erfolgreich erstellt")
+        flash("Test-Personen erfolgreich erstellt", 'success')
     except:
-        flash("Fehler beim Erstellen der Test-Personen")
+        flash("Fehler beim Erstellen der Test-Personen", 'danger')
     
     return redirect(url_for('index'))
 

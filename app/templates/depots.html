@@ -207,7 +207,7 @@
             body: JSON.stringify(data)
         })
             .then(response => response.text())
-            .then(text => { 
+            .then(text => {
                 console.log(text);
                 window.location.href = "/depots/{{ person.person_id }}";
             })
@@ -226,40 +226,47 @@
     let auszahlenButton = document.getElementById("auszahlenButton");
     let auszahlenSubmitButton = document.getElementById("auszahlen");
 
-    auszahlenInput.addEventListener("input", function () {
-        auszahlenSubmitButton.disabled = !/^\d+([.,]\d{1,2})?$/.test(this.value.trim());
-    });
-    auszahlenButton.addEventListener("click", function () {
-        if (einzahlenButton.getAttribute("aria-expanded") === "false") {
-            auszahlenInput.value = "";
-        }
-    })
+    if (auszahlenInput) {
+        auszahlenInput.addEventListener("input", function () {
+            auszahlenSubmitButton.disabled = !/^\d+([.,]\d{1,2})?$/.test(this.value.trim());
+        });
+    }
 
-    auszahlenSubmitButton.onclick = function (event) {
-        event.preventDefault();
-
-        auszahlenBetrag = auszahlenInput.value;
-        let data = {
-            "auszahlen": auszahlenBetrag
-        };
-
-        fetch(`/api/personen/{{ person.person_id }}/auszahlen`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
+    if (auszahlenButton) {
+        auszahlenButton.addEventListener("click", function () {
+            if (einzahlenButton.getAttribute("aria-expanded") === "false") {
+                auszahlenInput.value = "";
+            }
         })
-            .then(response => response.text())
-            .then(text => { 
-                console.log(text);
-                window.location.href = "/depots/{{ person.person_id }}";
+    }
+
+    if (auszahlenSubmitButton) {
+        auszahlenSubmitButton.onclick = function (event) {
+            event.preventDefault();
+
+            auszahlenBetrag = auszahlenInput.value;
+            let data = {
+                "auszahlen": auszahlenBetrag
+            };
+
+            fetch(`/api/personen/{{ person.person_id }}/auszahlen`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
             })
-            .catch(error => {
-                console.log(error);
-                window.location.href = "/depots/{{ person.person_id }}";
-            });
-    };
+                .then(response => response.text())
+                .then(text => {
+                    console.log(text);
+                    window.location.href = "/depots/{{ person.person_id }}";
+                })
+                .catch(error => {
+                    console.log(error);
+                    window.location.href = "/depots/{{ person.person_id }}";
+                });
+        };
+    }
 </script>
 {% endif %}
 {% if deposits %}
