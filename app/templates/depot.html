@@ -4,7 +4,10 @@
 {% if current_user.is_admin %}
 <h2>Admin Funktionen</h2>
 <div class="admin-functions-container">
-    <button class="btn btn-primary" id="wertpapiereKaufen">Wertpapiere kaufen</button>
+    <!-- Button "Wertpapiere kaufen" -->
+    <a href="{{ url_for('wertpapiere_kaufen', person_id=person.person_id, depot_id=deposit.deposit_id) }}">
+        <button class="btn btn-primary" id="wertpapiereKaufen">Wertpapiere kaufen</button>
+    </a>
 </div>
 <hr class="dotted-divider-full" style="margin-top: 20px;">
 {% endif %}
@@ -48,7 +51,7 @@
     </tbody>
 </table>
 
-{% if current_user.is_admin %}
+<!-- {% if current_user.is_admin %}
 <script>
     let kaufenButton = document.getElementById("wertpapiereKaufen");
 
@@ -67,7 +70,8 @@
             .catch(error => {
                 console.log(error);
             });
+        
     }
 </script>
-{% endif %}
+{% endif %} -->
 {% endblock %}

@@ -1,6 +1,6 @@
 from flask import flash, make_response, redirect, render_template, request, url_for
 from app import app, models, db
-from app.forms import CreatePersonForm, LoginForm, UpdatePersonForm
+from app.forms import CreatePersonForm, LoginForm, UpdatePersonForm, WertpapiereKaufenForm
 from flask_login import current_user, login_required, login_user, logout_user
 
 @app.route('/')
@@ -176,5 +176,20 @@ def depositByPerson(person_id, depot_id):
             deposit = models.get_deposit(depot_id)
             securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
             return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit, securities_positions=securities_positions)
+    except Exception as e:
+        print(e)
+
+# Wertpapiere kaufen: Form
+@app.route('/personen/<int:person_id>/depots/<int:depot_id>/wertpapiere_kaufen', methods=['GET', 'POST'])
+@login_required
+def wertpapiere_kaufen(person_id, depot_id):
+    form = WertpapiereKaufenForm()
+    try:
+        person = models.get_person(person_id)
+        if current_user.is_admin:
+            deposit = models.get_deposit(depot_id)
+            securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
+            
+            return render_template('wertpapiere_kaufen.html', form=form, person=person, deposit=deposit)
     except Exception as e:
         print(e)

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin: 2%;"></div>
+<h1 style="margin: 0 20%;">Wertpapiere kaufen</h1>
+<br>
+<hr class="dotted-divider">
+<br>
+<br>
+<form class="form-horizontal" action="" method="post" novalidate style="margin: 0 20%;">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group mt-4">
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('depositByPerson', person_id=person.person_id, depot_id=deposit.deposit_id) }}" class="btn btn-secondary">Abbrechen</a>
+    </div>
+</form>
+</div>
+{% endblock %}

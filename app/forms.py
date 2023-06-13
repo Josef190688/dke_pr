@@ -45,3 +45,5 @@ class UpdatePersonForm(FlaskForm):
     is_admin = BooleanField('Admin', validators=[Optional()])
     submit = SubmitField('aktualisieren')
 
+class WertpapiereKaufenForm(FlaskForm):
+    submit = SubmitField('kaufen')
