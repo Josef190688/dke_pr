@@ -1,35 +1,73 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% if current_user.is_admin %}
-    <h2>Admin Funktionen</h2>
-    <div class="admin-functions-container">
-        <button class="btn btn-primary" id="wertpapiereKaufen">Wertpapiere kaufen</button>
-    </div>
-    <hr class="dotted-divider-full" style="margin-top: 20px;">
-    {% endif %}
-    <h1>{{ person.username }} {{ deposit.deposit_name }} </h1>
+{% if current_user.is_admin %}
+<h2>Admin Funktionen</h2>
+<div class="admin-functions-container">
+    <button class="btn btn-primary" id="wertpapiereKaufen">Wertpapiere kaufen</button>
+</div>
+<hr class="dotted-divider-full" style="margin-top: 20px;">
+{% endif %}
 
-    {% if current_user.is_admin %}
-    <script>
-        let kaufenButton = document.getElementById("wertpapiereKaufen");
+<h1 style="align-items: flex-end;">{{ deposit.deposit_name }}</h1>
+<!-- Name des Inhabers der Depots -->
+{% if current_user.is_admin %}
+<h4 style="align-items: flex-end; padding-left: 10px;">ID {{ person.person_id }} - {{ person.first_name }} {{
+    person.last_name }}</h4>
+{% endif %}
 
-        kaufenButton.onclick = function (event) {
-            event.preventDefault();
-            fetch('http://127.0.0.1:50051/firmen/wertpapiere', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                })
-                .then(response => response.json())
-                .then(json => {
-                    console.log(json);
-                })
-                .catch(error => {
-                    console.log(error);
-                });
-            }
-    </script>
-    {% endif %}
+<!-- Infotext, wenn keine Depots vorhanden -->
+{% if not securities_positions %}
+<br>
+<div class="alert alert-info" role="alert">
+    In diesem Depot befinden sich keine Wertpapiere.
+</div>
+{% endif %}
+<!-- Wertpapiere-Tabelle -->
+<table class="table table-hover table-condensed">
+    <thead>
+        <tr>
+            <th>Wertpapier</th>
+            <th>Kurs / Stk</th>
+            <th>Anzahl</th>
+            <th>Gesamt</th>
+            <th>Wann & Wo</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- {% for position in securities_positions %} -->
+        <!-- <tr data-row-id="{{ deposit.deposit_id }}" , data-has-positions="FALSE"> -->
+        <tr>
+            <td style="vertical-align: middle;">Bla</td>
+            <td style="vertical-align: middle;">EUR 0,00</td>
+            <td style="vertical-align: middle;">0</td>
+            <td style="vertical-align: middle;">EUR 0,00</td>
+            <td style="vertical-align: middle;">Bla</td>
+        </tr>
+        <!-- {% endfor %} -->
+    </tbody>
+</table>
+
+{% if current_user.is_admin %}
+<script>
+    let kaufenButton = document.getElementById("wertpapiereKaufen");
+
+    kaufenButton.onclick = function (event) {
+        event.preventDefault();
+        fetch('http://127.0.0.1:50051/firmen/wertpapiere', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(json => {
+                console.log(json);
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    }
+</script>
+{% endif %}
 {% endblock %}

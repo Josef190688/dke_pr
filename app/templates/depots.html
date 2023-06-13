@@ -50,10 +50,9 @@
     {% endif %}
 </div>
 <hr class="dotted-divider-full" style="margin-top: 20px;">
-
-<h1 style="align-items: flex-end;">Depotübersicht</h1>
 {% endif %}
 
+<h1 style="align-items: flex-end;">Depotübersicht</h1>
 <!-- Name des Inhabers der Depots -->
 {% if current_user.is_admin %}
 <h4 style="align-items: flex-end; padding-left: 10px;">ID {{ person.person_id }} - {{ person.first_name }} {{
