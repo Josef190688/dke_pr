@@ -148,7 +148,7 @@ def delete_person(person_id):
     except:
         return False
 
-#TODO: CRUD Depotübersicht
+# CRUD Depotübersicht
 # ------------------------------------------------------------------------------------------
 # CREATE
 def create_deposit(person_id, deposit_name):
@@ -178,5 +178,9 @@ def delete_deposit(deposit_id):
     except:
         return False
 
-#TODO: CRUD Depotpositionen
+# CRUD Depotpositionen
 # ------------------------------------------------------------------------------------------
+
+# READ
+def get_securities_positions_by_deposit(deposit_id: int):
+    return SecuritiesPosition.query.filter_by(positions_deposit_id=deposit_id).all()

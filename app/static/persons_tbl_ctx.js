@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Kontextemenü: Zur Depotübersicht
     let showDepositButton = document.getElementById('show-deposit');
     showDepositButton.addEventListener("click", function (event) {
-        window.location.href = "/depots/" + selectedRowID;
+        window.location.href = "/personen/" + selectedRowID + "/depots" ;
     });
 
     // Kontextmenü: Bearbeiten

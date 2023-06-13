@@ -153,12 +153,11 @@ def depot_uebersicht():
     except Exception as e:
         print(e)
 
-# TODO eliminieren, unlogisch
-@app.route('/depots/<int:id>', methods=['GET'])
+@app.route('/personen/<int:person_id>/depots', methods=['GET'])
 @login_required
-def depots(id):
+def depots(person_id):
     try:
-        person = models.get_person(id)
+        person = models.get_person(person_id)
         if current_user.is_admin:
             deposits = person.deposits
             return render_template('depots.html', title='Depotübersicht', person=person, deposits=deposits)
@@ -175,6 +174,7 @@ def depositByPerson(person_id, depot_id):
         person = models.get_person(person_id)
         if current_user.is_admin:
             deposit = models.get_deposit(depot_id)
-            return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit)
+            securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
+            return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit, securities_positions=securities_positions)
     except Exception as e:
         print(e)
