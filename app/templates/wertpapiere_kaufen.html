@@ -28,6 +28,7 @@
         <label class="control-label col-xs-2">Börse</label>
         <div class="col-xs-8">
             <select id="boersenSelect" class="form-control" style="display: none;"></select>
+            {{ form.selectedBoersenId() }}
             <div id="infotext" class="alert alert-info" role="alert" style="display: none;">
                 Das ausgewählte Wertpapier wird an keiner Börse angeboten.
             </div>
@@ -118,7 +119,8 @@
             formSubmitButton.disabled = !isValid;
         }
 
-        // Börsen anzeigen, die das jeweilige Wertpapier anbieten
+        // Wertpapiert selektiert
+        // -> Börsen anzeigen, die das jeweilige Wertpapier anbieten
         wertpapierSelectElement.addEventListener('change', function () {
             boerseSelectElement.innerHTML = '';
             const selectedValue = wertpapierSelectElement.value;
@@ -156,7 +158,16 @@
                 boerseSelectElement.style.display = 'none';
             }
             validateInputs();
+            // Programmatisch das "change"-Event auslösen
+            const event = new Event('change');
+            boerseSelectElement.dispatchEvent(event);
         })
+
+        // Börse selektiert
+        boerseSelectElement.addEventListener('change', function () {
+            const selectedValue = boerseSelectElement.value;
+            document.getElementById('selectedBoersenId').value = selectedValue;
+        });
 
         // Anzahl Input-Validation
         amountInputElement.addEventListener('input', function () {
