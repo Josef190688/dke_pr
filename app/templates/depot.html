@@ -51,27 +51,4 @@
     </tbody>
 </table>
 
-<!-- {% if current_user.is_admin %}
-<script>
-    let kaufenButton = document.getElementById("wertpapiereKaufen");
-
-    kaufenButton.onclick = function (event) {
-        event.preventDefault();
-        fetch('http://127.0.0.1:50051/firmen/wertpapiere', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then(json => {
-                console.log(json);
-            })
-            .catch(error => {
-                console.log(error);
-            });
-        
-    }
-</script>
-{% endif %} -->
 {% endblock %}

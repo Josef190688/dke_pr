@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if current_user.is_admin %}
 <div style="margin: 2%;"></div>
 <h1 style="margin: 0 20%;">Wertpapiere kaufen</h1>
 <br>
@@ -10,10 +11,155 @@
 <form class="form-horizontal" action="" method="post" novalidate style="margin: 0 20%;">
     {{ form.hidden_tag() }}
 
+    <div class="form-group">
+        <label class="control-label col-xs-2">Wertpapier</label>
+        <div class="col-xs-8">
+            <select id="wertpapiereSelect" class="form-control"></select>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="form-group">
+        <label class="control-label col-xs-2">Börse</label>
+        <div class="col-xs-8">
+            <select id="boersenSelect" class="form-control"></select>
+        </div>
+    </div>
+
     <div class="form-group mt-4">
         {{ form.submit(class="btn btn-primary") }}
-        <a href="{{ url_for('depositByPerson', person_id=person.person_id, depot_id=deposit.deposit_id) }}" class="btn btn-secondary">Abbrechen</a>
+        <a href="{{ url_for('depositByPerson', person_id=person.person_id, depot_id=deposit.deposit_id) }}"
+            class="btn btn-secondary">Abbrechen</a>
     </div>
 </form>
-</div>
+
+<!-- JavaScript -->
+<!------------------------------------------------------------------------------------------------------->
+
+<script>
+    function fetchOfferForBoerse(boerse) {
+        const marketId = boerse.market_id;
+
+        return fetch('http://127.0.0.1:50052/markets/' + marketId + '/offer', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(json => {
+                boerse.offer = json;
+            });
+    }
+
+    const boersen = [];
+    const wertpapiereZuBoersen = {};
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        const wertpapierSelectElement = document.getElementById('wertpapiereSelect');
+        const boerseSelectElement = document.getElementById('boersenSelect');
+
+        // Börsen anzeigen, die das jeweilige Wertpapier anbieten
+        wertpapierSelectElement.addEventListener('change', function () {
+            boerseSelectElement.innerHTML = '';
+            const selectedValue = wertpapierSelectElement.value;
+            console.log('Ausgewählter Wert:', selectedValue);
+            console.log("Börsen, die das Wertpapier anbieten:", wertpapiereZuBoersen[selectedValue])
+            if (wertpapiereZuBoersen[selectedValue]) {
+                wertpapiereZuBoersen[selectedValue].forEach(boerse => {
+                    if (boerse) {
+                        const option = document.createElement('option');
+                        option.text = boerse.market_name;
+                        option.value = boerse.market_id;
+                        boerseSelectElement.add(option);
+                    }
+                });
+            }
+        })
+
+        // Alle Börsenangebote durchiterieren und aufbereiten
+        fetch('http://127.0.0.1:50052/markets', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(json => {
+                Object.entries(json).forEach(([key, value]) => {
+                    Object.entries(value).forEach(([key, value]) => {
+                        boersen[value?.market_id] = value;
+                        Object.entries(value).forEach(([key, value]) => {
+                            // Attribute der Börse
+                            if (key === 'market_id') {
+                                fetch('http://127.0.0.1:50052/markets/' + value + '/offer', {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                })
+                                    .then(response => response.json())
+                                    .then(json => {
+                                        boersen[value]['offer'] = json;
+                                    })
+                                    .catch(error => {
+                                        console.log(error);
+                                    });
+                            }
+                        });
+                    });
+                });
+                console.log("börsen", boersen);
+                Promise.all(boersen.map(boerse => fetchOfferForBoerse(boerse)))
+                    .then(() => {
+                        boersen.forEach(boerse => {
+                            if (boerse.offer) {
+                                boerse.offer.forEach(offer => {
+                                    const wertpapierId = offer.security_id;
+                                    if (!wertpapiereZuBoersen[wertpapierId]) {
+                                        wertpapiereZuBoersen[wertpapierId] = [];
+                                    }
+                                    wertpapiereZuBoersen[wertpapierId][boerse.market_id] = boerse;
+                                });
+                            }
+                        });
+                        console.log("wertpapierzuweisung", wertpapiereZuBoersen)
+                    })
+                    .then(() => {
+                        // Alle theoretisch möglichen Wertpapiere anzeigen
+                        fetch('http://127.0.0.1:50051/firmen/wertpapiere', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                            .then(response => response.json())
+                            .then(json => {
+                                console.log('wertpapiere', json)
+                                json.sort((a, b) => a.name.localeCompare(b.name));
+                                json.forEach(wertpapier => {
+                                    const option = document.createElement('option');
+                                    option.text = wertpapier.name;
+                                    option.value = wertpapier.id;
+                                    wertpapierSelectElement.add(option);
+                                });
+                                // Programmatisch das "change"-Event auslösen
+                                const event = new Event('change');
+                                wertpapierSelectElement.dispatchEvent(event);
+                            })
+                            .catch(error => {
+                                console.log(error);
+                            });
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    });
+</script>
+{% endif %}
 {% endblock %}
