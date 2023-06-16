@@ -181,6 +181,34 @@ def delete_deposit(deposit_id):
 # CRUD Depotpositionen
 # ------------------------------------------------------------------------------------------
 
+# CREATE
+def create_securities_position(company_id, amount, market_id, purchase_timestamp, deposit_id):
+    try:
+        securities_position = SecuritiesPosition(company_id=company_id, amount=amount, market_id=market_id, purchase_timestamp=purchase_timestamp, positions_deposit_id=deposit_id)
+        db.session.add(securities_position)
+        db.session.commit()
+        return securities_position
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+        return None
+    
 # READ
 def get_securities_positions_by_deposit(deposit_id: int):
     return SecuritiesPosition.query.filter_by(positions_deposit_id=deposit_id).all()
+
+def get_securities_position(securities_position_id: int) -> Union[SecuritiesPosition, None]:
+    return SecuritiesPosition.query.get(securities_position_id)
+
+# DELETE
+def delete_securities_position(securities_position_id):
+    try:
+        securities_position = SecuritiesPosition.query.get(securities_position_id)
+        if not securities_position:
+            return False
+        db.session.delete(securities_position)
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(e)
+        return False

@@ -1,4 +1,6 @@
+from datetime import datetime
 from flask import flash, make_response, redirect, render_template, request, url_for
+import requests
 from app import app, models, db
 from app.forms import CreatePersonForm, LoginForm, UpdatePersonForm, WertpapiereKaufenForm
 from flask_login import current_user, login_required, login_user, logout_user
@@ -179,21 +181,39 @@ def depositByPerson(person_id, depot_id):
     except Exception as e:
         print(e)
 
-# Wertpapiere kaufen: Form
+# Wertpapiere kaufen (nur für Admin)
 @app.route('/personen/<int:person_id>/depots/<int:depot_id>/wertpapiere_kaufen', methods=['GET', 'POST'])
 @login_required
 def wertpapiere_kaufen(person_id, depot_id):
     form = WertpapiereKaufenForm()
     try:
+        person = models.get_person(person_id)
+        deposit = models.get_deposit(depot_id)
         if form.validate_on_submit():
-            flash(form.selectedWertpapier.data + " " + " erfolgreich gekauft", 'success')
-            return redirect(url_for('depositByPerson', person_id=person_id, depot_id=depot_id))
+            data = {
+                'security_id': form.selectedWertpapierId.data,
+                'amount': form.amount.data
+            }
+            response = requests.put(f"http://127.0.0.1:50052/markets/{form.selectedBoersenId.data}/buy", json=data)
+            if response.status_code == 200:
+                flash(form.amount.data)
+                flash(response.text, 'success')
+                models.create_securities_position(company_id=form.comp_id.data,
+                                                  amount=form.amount.data,
+                                                  market_id=form.selectedBoersenId.data,
+                                                  purchase_timestamp=datetime.now(),
+                                                  deposit_id=depot_id)
+                return redirect(url_for('depositByPerson', person_id=person_id, depot_id=depot_id))
+            else:
+                flash(response.text, 'error')
         else:
-            person = models.get_person(person_id)
             if current_user.is_admin:
-                deposit = models.get_deposit(depot_id)
                 securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
-                
                 return render_template('wertpapiere_kaufen.html', form=form, person=person, deposit=deposit)
+    except requests.RequestException as e:
+        flash('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.', 'danger')
+        return render_template('wertpapiere_kaufen.html', form=form, person=person, deposit=deposit)
     except Exception as e:
+        flash('Ein interner Serverfehler ist aufgetreten. Bitte kontaktieren Sie den Administrator.', 'danger')
         print(e)
+        return render_template('wertpapiere_kaufen.html', form=form, person=person, deposit=deposit)

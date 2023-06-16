@@ -25,6 +25,18 @@
 <div class="alert alert-info" role="alert">
     In diesem Depot befinden sich keine Wertpapiere.
 </div>
+{% else %}
+<!-- Kontext-Menü zur Tabelle, wenn Positionen vorhanden -->
+{% if current_user.is_admin %}
+<div class="btn-group d-md-none m-1">
+    <button id="context-menu-button" class="btn dropdown-toggle" type="button" data-toggle="dropdown"
+        data-boundary="window" aria-expanded="false" style="visibility: hidden;">
+        <span class="glyphicon glyphicon-option-vertical"></span>
+    </button>
+    <ul id="context-menu" class="dropdown-menu">
+        <li><a id="sell" href="#">Verkaufen</a></li>
+    </ul>
+</div>
 {% endif %}
 <!-- Wertpapiere-Tabelle -->
 <table class="table table-hover table-condensed">
@@ -38,17 +50,96 @@
         </tr>
     </thead>
     <tbody>
-        <!-- {% for position in securities_positions %} -->
-        <!-- <tr data-row-id="{{ deposit.deposit_id }}" , data-has-positions="FALSE"> -->
-        <tr>
-            <td style="vertical-align: middle;">Bla</td>
-            <td style="vertical-align: middle;">EUR 0,00</td>
-            <td style="vertical-align: middle;">0</td>
-            <td style="vertical-align: middle;">EUR 0,00</td>
-            <td style="vertical-align: middle;">Bla</td>
+        {% for position in securities_positions %}
+        <tr data-row-id="{{ position.securities_position_id }}">
+            <td>{{ position.company_id }}</td>
+            <td>EUR 0.0</td>
+            <td>{{ position.amount }}</td>
+            <td>0</td>
+            <td>{{ position.purchase_timestamp }} {{ position.market_id }}</td>
         </tr>
-        <!-- {% endfor %} -->
+        {% endfor %}
     </tbody>
 </table>
+{% endif %}
+
+{% if securities_positions %}
+<script>
+    // Kontextmenü und Hover-Verhalten für Tabelle implementieren
+    // ============================================================================
+    document.addEventListener("DOMContentLoaded", function () {
+        let selectedRowID = null;
+        let rows = document.querySelectorAll(".table-hover tbody tr");
+        let contextMenu = document.getElementById('context-menu');
+
+        rows.forEach(function (row) {
+            row.addEventListener("click", function (event) {
+                let id = this.getAttribute("data-row-id");
+                if (id === selectedRowID) {
+                    selectedRowID = null;
+                    contextMenu.style.display = 'none';
+                    rows.forEach(function (row) {
+                        row.classList.remove("active");
+                    });
+                } else {
+                    selectedRowID = id;
+                    let buttonBoundaries = document.getElementById("context-menu-button").getBoundingClientRect();
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = event.pageX - buttonBoundaries.left + window.pageXOffset + 'px';
+                    contextMenu.style.top = event.pageY - buttonBoundaries.top - window.pageYOffset + 'px';
+                    rows.forEach(function (row) {
+                        row.classList.remove("active");
+                    });
+                    this.classList.add("active");
+                }
+            });
+        });
+
+        document.addEventListener("click", function (event) {
+            let isClickedInsideRow = false;
+            let target = event.target;
+            while (target.parentNode) {
+                if (target.matches(".table-hover tbody tr")) {
+                    isClickedInsideRow = true;
+                    break;
+                }
+                target = target.parentNode;
+            }
+            if (!isClickedInsideRow) {
+                contextMenu.style.display = 'none';
+                selectedRowID = null;
+                rows.forEach(function (row) {
+                    row.classList.remove("active");
+                });
+            }
+        });
+
+        // Kontextmenü: Verkaufen
+        let deleteDepositButton = document.getElementById('sell');
+        if (deleteDepositButton) {
+            deleteDepositButton.addEventListener("click", function (event) {
+                // Depotposition löschen
+                let confirmDelete = confirm("Sind Sie sicher, dass Sie das Wertpapier verkaufen möchten?");
+                if (confirmDelete) {
+                    fetch(`/api/personen/{{ person.person_id }}/depots/{{ deposit.deposit_id }}/depotposition/${selectedRowID}`, {
+                        method: 'DELETE',
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log("Depotposition erfolgreich gelöscht");
+                                window.location.reload();
+                            } else {
+                                console.error("Fehler beim Löschen der Depotposition");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Fehler beim Löschen der Depotposition:", error);
+                        });
+                }
+            });
+        }
+    });
+</script>
+{% endif %}
 
 {% endblock %}

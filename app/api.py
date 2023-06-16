@@ -122,3 +122,26 @@ def delete_depot(person_id, deposit_id):
 
 # CRUD Depotpositionen
 # ------------------------------------------------------------------------------------------
+
+# DELETE Depotposition
+@app.route('/api/personen/<int:person_id>/depots/<int:deposit_id>/depotposition/<int:position_id>', methods=['DELETE'])
+@login_required
+def sell(person_id, deposit_id, position_id):
+    if current_user.is_admin:
+        try:
+            person = models.get_person(person_id)
+            if not person:
+                return jsonify({'error': 'Person nicht gefunden'}), 404
+
+            deposit = models.get_deposit(deposit_id)
+            if not deposit or deposit.person.person_id != person_id:
+                return jsonify({'error': 'Depot nicht gefunden oder gehört nicht zur Person'}), 404
+            
+            position = models.get_securities_position(position_id)
+            if not position or position.deposit.deposit_id != deposit_id:
+                return jsonify({'error': 'Depotposition nicht gefunden oder gehört nicht zum angegebenen Depot'}), 404
+
+            models.delete_securities_position(position.securities_position_id)
+            return jsonify({'message': 'Depotposition erfolgreich gelöscht'}), 200
+        except Exception as e:
+            return jsonify({'error': e}), 500
