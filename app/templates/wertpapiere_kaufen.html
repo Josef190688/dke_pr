@@ -23,7 +23,10 @@
     <div class="form-group">
         <label class="control-label col-xs-2">Börse</label>
         <div class="col-xs-8">
-            <select id="boersenSelect" class="form-control"></select>
+            <select id="boersenSelect" class="form-control" style="display: none;"></select>
+            <div id="infotext" class="alert alert-info" role="alert" style="display: none;">
+                Das ausgewählte Wertpapier wird an keiner Börse angeboten.
+            </div>
         </div>
     </div>
 
@@ -64,10 +67,11 @@
         wertpapierSelectElement.addEventListener('change', function () {
             boerseSelectElement.innerHTML = '';
             const selectedValue = wertpapierSelectElement.value;
-            console.log('Ausgewählter Wert:', selectedValue);
+            console.log('Ausgewählte Wertpapier-ID:', selectedValue);
             console.log("Börsen, die das Wertpapier anbieten:", wertpapiereZuBoersen[selectedValue])
-            if (wertpapiereZuBoersen[selectedValue]) {
-                wertpapiereZuBoersen[selectedValue].forEach(boerse => {
+            const boersenForWertpapier = wertpapiereZuBoersen[selectedValue];
+            if (boersenForWertpapier && boersenForWertpapier.length > 0) {
+                boersenForWertpapier.forEach(boerse => {
                     if (boerse) {
                         const option = document.createElement('option');
                         option.text = boerse.market_name;
@@ -75,6 +79,11 @@
                         boerseSelectElement.add(option);
                     }
                 });
+                document.getElementById('infotext').style.display = 'none';
+                boerseSelectElement.style.display = 'block';
+            } else {
+                document.getElementById('infotext').style.display = 'block';
+                boerseSelectElement.style.display = 'none';
             }
         })
 
