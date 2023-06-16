@@ -16,7 +16,8 @@
         <label class="control-label col-xs-2">Wertpapier</label>
         <div class="col-xs-8">
             <select id="wertpapiereSelect" class="form-control"></select>
-            {{ form.selectedWertpapier() }}
+            {{ form.selectedWertpapierId() }}
+            {{ form.comp_id() }}
         </div>
     </div>
 
@@ -74,6 +75,7 @@
             });
     }
 
+    let wertpapiere = {};
     const boersen = [];
     const wertpapiereZuBoersen = {};
 
@@ -110,7 +112,7 @@
                 selectedBoerse !== '' &&
                 extractedNumber &&
                 !isNaN(amountInputElement.value) &&
-                amountInputElement.value > 0 &&amountInputElement.value <= extractedNumber;
+                amountInputElement.value > 0 && amountInputElement.value <= extractedNumber;
 
             // Button-Status aktualisieren
             formSubmitButton.disabled = !isValid;
@@ -120,7 +122,12 @@
         wertpapierSelectElement.addEventListener('change', function () {
             boerseSelectElement.innerHTML = '';
             const selectedValue = wertpapierSelectElement.value;
-            document.getElementById('selectedWertpapier').value = selectedValue;
+            document.getElementById('selectedWertpapierId').value = selectedValue;
+            wertpapiere.forEach(wertpapier => {
+                if (wertpapier.id == selectedValue) {
+                    document.getElementById('comp_id').value = wertpapier.comp_id;
+                }
+            });
             console.log('Ausgewählte Wertpapier-ID:', selectedValue);
             console.log("Börsen, die das Wertpapier anbieten:", wertpapiereZuBoersen[selectedValue])
             const boersenForWertpapier = wertpapiereZuBoersen[selectedValue];
@@ -215,6 +222,7 @@
                             .then(response => response.json())
                             .then(json => {
                                 console.log('wertpapiere', json)
+                                wertpapiere = json;
                                 json.sort((a, b) => a.name.localeCompare(b.name));
                                 json.forEach(wertpapier => {
                                     const option = document.createElement('option');

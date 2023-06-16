@@ -46,6 +46,7 @@ class UpdatePersonForm(FlaskForm):
     submit = SubmitField('aktualisieren')
 
 class WertpapiereKaufenForm(FlaskForm):
-    selectedWertpapier = HiddenField('Wertpapier')
+    selectedWertpapierId = HiddenField('Wertpapier')
+    comp_id = HiddenField()
     amount = IntegerField('Anzahl', render_kw={'class': 'form-control', 'id': 'amountInput'})
     submit = SubmitField('kaufen')
