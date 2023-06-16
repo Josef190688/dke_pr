@@ -145,3 +145,13 @@ def sell(person_id, deposit_id, position_id):
             return jsonify({'message': 'Depotposition erfolgreich gelöscht'}), 200
         except Exception as e:
             return jsonify({'error': e}), 500
+        
+# Öffentliche API
+# ------------------------------------------------------------------------------------------
+
+@app.route('/depot/wertpapier/verkauf/<int:depot_id>', methods=['PUT'])
+def wertpapier_verkauft(depot_id):
+    data = request.get_json()
+    print('Verkauf Wertpapier, Depot ID: ' + str(depot_id))
+    print('Received data:', data)
+    return f"Verkauf von Wertpapier mit der ID {depot_id}"
