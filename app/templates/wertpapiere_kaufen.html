@@ -11,6 +11,7 @@
 <form class="form-horizontal" action="" method="post" novalidate style="margin: 0 20%;">
     {{ form.hidden_tag() }}
 
+    <!-- Wertpapier-Auswahl -->
     <div class="form-group">
         <label class="control-label col-xs-2">Wertpapier</label>
         <div class="col-xs-8">
@@ -19,7 +20,8 @@
     </div>
 
     <br>
-
+    
+    <!-- Börsen-Auswahl -->
     <div class="form-group">
         <label class="control-label col-xs-2">Börse</label>
         <div class="col-xs-8">
@@ -30,6 +32,20 @@
         </div>
     </div>
 
+    <br>
+
+    <!-- Verfügbare Anzahl an Wertpapieren -->
+    <div id="anzahl" class="form-group" style="display: none;">
+        <label class="control-label col-xs-2">Stückzahl</label>
+        <div class="col-xs-8">
+            <input type="number" id="quantity" name="quantity" min="0" max="100" step="1" style="min-width: 100px;">
+            <label id="maxAnzahl"> von 50</label>
+        </div>
+    </div>
+    
+    <br>
+
+    <!-- Submit und Abbrechen Buttons -->
     <div class="form-group mt-4">
         {{ form.submit(class="btn btn-primary") }}
         <a href="{{ url_for('depositByPerson', person_id=person.person_id, depot_id=deposit.deposit_id) }}"
@@ -62,6 +78,7 @@
     document.addEventListener("DOMContentLoaded", function (event) {
         const wertpapierSelectElement = document.getElementById('wertpapiereSelect');
         const boerseSelectElement = document.getElementById('boersenSelect');
+        const anzahlElement = document.getElementById('anzahl');
 
         // Börsen anzeigen, die das jeweilige Wertpapier anbieten
         wertpapierSelectElement.addEventListener('change', function () {
@@ -80,9 +97,18 @@
                     }
                 });
                 document.getElementById('infotext').style.display = 'none';
+                anzahlElement.style.display = 'block';
+                let max = 0;
+                wertpapiereZuBoersen[wertpapierSelectElement.value][boerseSelectElement.value].offer.forEach(offer => {
+                    if (offer.security_id == wertpapierSelectElement.value) {
+                        max += offer.amount;
+                    }
+                });
+                document.getElementById('maxAnzahl').innerHTML = ' von ' + max;
                 boerseSelectElement.style.display = 'block';
             } else {
                 document.getElementById('infotext').style.display = 'block';
+                anzahlElement.style.display = 'none';
                 boerseSelectElement.style.display = 'none';
             }
         })
