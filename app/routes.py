@@ -185,11 +185,15 @@ def depositByPerson(person_id, depot_id):
 def wertpapiere_kaufen(person_id, depot_id):
     form = WertpapiereKaufenForm()
     try:
-        person = models.get_person(person_id)
-        if current_user.is_admin:
-            deposit = models.get_deposit(depot_id)
-            securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
-            
-            return render_template('wertpapiere_kaufen.html', form=form, person=person, deposit=deposit)
+        if form.validate_on_submit():
+            flash(" erfolgreich gekauft", 'success')
+            return redirect(url_for('depositByPerson', person_id=person_id, depot_id=depot_id))
+        else:
+            person = models.get_person(person_id)
+            if current_user.is_admin:
+                deposit = models.get_deposit(depot_id)
+                securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
+                
+                return render_template('wertpapiere_kaufen.html', form=form, person=person, deposit=deposit)
     except Exception as e:
         print(e)
