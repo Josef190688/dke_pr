@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField, IntegerField, HiddenField
 from wtforms.validators import DataRequired, Optional, InputRequired
 from wtforms import ValidationError
 from app import models
@@ -46,4 +46,6 @@ class UpdatePersonForm(FlaskForm):
     submit = SubmitField('aktualisieren')
 
 class WertpapiereKaufenForm(FlaskForm):
+    selectedWertpapier = HiddenField('Wertpapier')
+    amount = IntegerField('Anzahl', render_kw={'class': 'form-control', 'id': 'amountInput'})
     submit = SubmitField('kaufen')

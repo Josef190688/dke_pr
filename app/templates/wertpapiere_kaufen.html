@@ -16,11 +16,12 @@
         <label class="control-label col-xs-2">Wertpapier</label>
         <div class="col-xs-8">
             <select id="wertpapiereSelect" class="form-control"></select>
+            {{ form.selectedWertpapier() }}
         </div>
     </div>
 
     <br>
-    
+
     <!-- Börsen-Auswahl -->
     <div class="form-group">
         <label class="control-label col-xs-2">Börse</label>
@@ -38,16 +39,17 @@
     <div id="anzahl" class="form-group" style="display: none;">
         <label class="control-label col-xs-2">Stückzahl</label>
         <div class="col-xs-8">
-            <input type="number" id="quantity" name="quantity" min="0" max="100" step="1" style="min-width: 100px;">
+            <div class="form-group">{{ form.amount(class="form-control") }}</div>
             <label id="maxAnzahl"> von 50</label>
+            <span id="anzahlInputValid" class="text-danger" style="display: none;"></span>
         </div>
     </div>
-    
+
     <br>
 
     <!-- Submit und Abbrechen Buttons -->
     <div class="form-group mt-4">
-        {{ form.submit(class="btn btn-primary") }}
+        {{ form.submit(id="formSubmitButton", class="btn btn-primary", disabled="disabled") }}
         <a href="{{ url_for('depositByPerson', person_id=person.person_id, depot_id=deposit.deposit_id) }}"
             class="btn btn-secondary">Abbrechen</a>
     </div>
@@ -79,11 +81,46 @@
         const wertpapierSelectElement = document.getElementById('wertpapiereSelect');
         const boerseSelectElement = document.getElementById('boersenSelect');
         const anzahlElement = document.getElementById('anzahl');
+        const amountInputElement = document.getElementById('amountInput');
+
+        function validateInputs() {
+            const selectedWertpapier = wertpapierSelectElement.value;
+            const selectedBoerse = boerseSelectElement.value;
+
+            const max = document.getElementById('maxAnzahl');
+            const numberPattern = /\d+/;
+            const match = max.innerHTML.match(numberPattern);
+            let extractedNumber;
+            if (match) {
+                extractedNumber = parseInt(match[0]);
+                if (!isNaN(amountInputElement.value) && amountInputElement.value > extractedNumber) {
+                    document.getElementById('anzahlInputValid').style.display = 'block';
+                    document.getElementById('anzahlInputValid').innerHTML = 'Die zu kaufende Stückzahl ist größer als die verfügbare Stückzahl.'
+                } else {
+                    document.getElementById('anzahlInputValid').style.display = 'none';
+                }
+            } else {
+                document.getElementById('anzahlInputValid').style.display = 'block';
+                document.getElementById('anzahlInputValid').innerHTML = 'Die Eingabe muss eine gültige Zahl sein.'
+            }
+
+            // Überprüfen, ob beide Werte ausgewählt wurden und die Anzahl eine gültige Zahl ist
+            const isValid =
+                selectedWertpapier !== '' &&
+                selectedBoerse !== '' &&
+                extractedNumber &&
+                !isNaN(amountInputElement.value) &&
+                amountInputElement.value > 0 &&amountInputElement.value <= extractedNumber;
+
+            // Button-Status aktualisieren
+            formSubmitButton.disabled = !isValid;
+        }
 
         // Börsen anzeigen, die das jeweilige Wertpapier anbieten
         wertpapierSelectElement.addEventListener('change', function () {
             boerseSelectElement.innerHTML = '';
             const selectedValue = wertpapierSelectElement.value;
+            document.getElementById('selectedWertpapier').value = selectedValue;
             console.log('Ausgewählte Wertpapier-ID:', selectedValue);
             console.log("Börsen, die das Wertpapier anbieten:", wertpapiereZuBoersen[selectedValue])
             const boersenForWertpapier = wertpapiereZuBoersen[selectedValue];
@@ -111,7 +148,13 @@
                 anzahlElement.style.display = 'none';
                 boerseSelectElement.style.display = 'none';
             }
+            validateInputs();
         })
+
+        // Anzahl Input-Validation
+        amountInputElement.addEventListener('input', function () {
+            validateInputs();
+        });
 
         // Alle Börsenangebote durchiterieren und aufbereiten
         fetch('http://127.0.0.1:50052/markets', {

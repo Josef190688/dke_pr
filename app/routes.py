@@ -186,7 +186,7 @@ def wertpapiere_kaufen(person_id, depot_id):
     form = WertpapiereKaufenForm()
     try:
         if form.validate_on_submit():
-            flash(" erfolgreich gekauft", 'success')
+            flash(form.selectedWertpapier.data + " " + " erfolgreich gekauft", 'success')
             return redirect(url_for('depositByPerson', person_id=person_id, depot_id=depot_id))
         else:
             person = models.get_person(person_id)
