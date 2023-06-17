@@ -355,7 +355,7 @@
         let deleteDepositButton = document.getElementById('delete_deposit');
         if (deleteDepositButton) {
             deleteDepositButton.addEventListener("click", function (event) {
-                if (event.target.parentNode && event.target.parentNode.getAttribute("data-has-positions") === "TRUE") {
+                if (document.querySelector(`tr[data-row-id="${selectedRowID}"]`) && document.querySelector(`tr[data-row-id="${selectedRowID}"]`).getAttribute("data-has-positions") === "TRUE") {
                     alert("Löschen nicht möglich, da das Depot Positionen enthält.");
                 } else {
                     let confirmDelete = confirm("Sind Sie sicher, dass Sie das Depot löschen möchten?");
