@@ -42,6 +42,7 @@ CREATE TABLE `web122_db10`.`deposit` (
 
 CREATE TABLE `web122_db10`.`securities_position` (
   `securities_position_id` INT NOT NULL AUTO_INCREMENT COMMENT "Eindeutige ID einer Wertpapier-Position in einem Depot",
+  `security_id` INT NOT NULL COMMENT "Eindeutige ID des Wertpapieres",
   `company_id` INT NOT NULL COMMENT "Eindeutige ID der Firma des Wertpapieres",
   `amount` INT NOT NULL COMMENT "Anzahl der Wertpapiere in dieser Position",
   `market_id` INT NOT NULL COMMENT "Eindeutige ID der Börse, an der das Wertpapier erworben wurde",

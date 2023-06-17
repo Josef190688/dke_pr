@@ -118,11 +118,11 @@
         let deleteDepositButton = document.getElementById('sell');
         if (deleteDepositButton) {
             deleteDepositButton.addEventListener("click", function (event) {
-                // Depotposition löschen
-                let confirmDelete = confirm("Sind Sie sicher, dass Sie das Wertpapier verkaufen möchten?");
+                // Depotposition verkaufen
+                let confirmDelete = confirm("Sind Sie sicher, dass Sie das Wertpapier zum Verkauf anbieten möchten?");
                 if (confirmDelete) {
-                    fetch(`/api/personen/{{ person.person_id }}/depots/{{ deposit.deposit_id }}/depotposition/${selectedRowID}`, {
-                        method: 'DELETE',
+                    fetch(`/api/personen/{{ person.person_id }}/depots/{{ deposit.deposit_id }}/depotposition/${selectedRowID}/verkauf`, {
+                        method: 'POST',
                     })
                         .then(response => {
                             if (response.ok) {

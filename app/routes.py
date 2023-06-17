@@ -9,17 +9,6 @@ from flask_login import current_user, login_required, login_user, logout_user
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    # user = {'username': 'Miguel'}
-    # posts = [
-    #     {
-    #         'author': {'username': 'John'},
-    #         'body': 'Beautiful day in Portland!'
-    #     },
-    #     {
-    #         'author': {'username': 'Susan'},
-    #         'body': 'The Avengers movie was so cool!'
-    #     }
-    # ]
     if current_user.is_admin:
         persons = models.get_all_persons()
         return render_template('personen.html', title='Home', persons=persons)
@@ -201,11 +190,20 @@ def wertpapiere_kaufen(person_id, depot_id):
                 'security_id': form.selectedWertpapierId.data,
                 'amount': form.amount.data
             }
+            data2 = {
+                'id': form.selectedWertpapierId.data,
+                'amount': form.amount.data,
+                'comp_id': form.comp_id.data,
+                'depot_id': form.depot_id.data,
+                # 'price': entry.get('price')
+                'currency' : form.currency.data
+            }
+            print(data2)
             response = requests.put(f"http://127.0.0.1:50052/markets/{form.selectedBoersenId.data}/buy", json=data)
             if response.status_code == 200:
-                flash(form.amount.data)
                 flash(response.text, 'success')
-                models.create_securities_position(company_id=form.comp_id.data,
+                models.create_securities_position(security_id=form.selectedWertpapierId.data,
+                                                  company_id=form.comp_id.data,
                                                   amount=form.amount.data,
                                                   market_id=form.selectedBoersenId.data,
                                                   purchase_timestamp=datetime.now(),
@@ -213,6 +211,7 @@ def wertpapiere_kaufen(person_id, depot_id):
                 return redirect(url_for('depositByPerson', person_id=person_id, depot_id=depot_id))
             else:
                 flash(response.text, 'error')
+                return render_template('wertpapiere_kaufen.html', form=form, person=person, deposit=deposit)
         else:
             if current_user.is_admin:
                 securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)

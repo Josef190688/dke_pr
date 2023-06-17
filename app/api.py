@@ -87,7 +87,6 @@ def create_depot(person_id):
 
             data = request.get_json()
             deposit_name = data.get('deposit_name')
-            # TODO auch andere werte (kontostand, displayed currency)
 
             # Validiere und erstelle das Depot
             if not deposit_name:
@@ -123,8 +122,8 @@ def delete_depot(person_id, deposit_id):
 # CRUD Depotpositionen
 # ------------------------------------------------------------------------------------------
 
-# DELETE Depotposition
-@app.route('/api/personen/<int:person_id>/depots/<int:deposit_id>/depotposition/<int:position_id>', methods=['DELETE'])
+# POST Depotposition - Verkauf
+@app.route('/api/personen/<int:person_id>/depots/<int:deposit_id>/depotposition/<int:position_id>/verkauf', methods=['POST'])
 @login_required
 def sell(person_id, deposit_id, position_id):
     if current_user.is_admin:
@@ -140,6 +139,14 @@ def sell(person_id, deposit_id, position_id):
             position = models.get_securities_position(position_id)
             if not position or position.deposit.deposit_id != deposit_id:
                 return jsonify({'error': 'Depotposition nicht gefunden oder gehört nicht zum angegebenen Depot'}), 404
+
+            data = {
+                'security_id': '',
+                'amount': '',
+                'depot_id': deposit.deposit_id,
+                'security_price': '',
+                'currency': ''
+            }
 
             models.delete_securities_position(position.securities_position_id)
             return jsonify({'message': 'Depotposition erfolgreich gelöscht'}), 200

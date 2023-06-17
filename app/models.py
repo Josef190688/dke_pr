@@ -75,6 +75,7 @@ class SecuritiesPosition(db.Model):
     __tablename__ = 'securities_position'
 
     securities_position_id = db.Column(db.Integer, primary_key=True)
+    security_id = db.Column(db.Integer, nullable=False)
     company_id = db.Column(db.Integer, nullable=False)
     amount = db.Column(db.Integer, nullable=False)
     market_id = db.Column(db.Integer, nullable=False)
@@ -182,9 +183,9 @@ def delete_deposit(deposit_id):
 # ------------------------------------------------------------------------------------------
 
 # CREATE
-def create_securities_position(company_id, amount, market_id, purchase_timestamp, deposit_id):
+def create_securities_position(security_id, company_id, amount, market_id, purchase_timestamp, deposit_id):
     try:
-        securities_position = SecuritiesPosition(company_id=company_id, amount=amount, market_id=market_id, purchase_timestamp=purchase_timestamp, positions_deposit_id=deposit_id)
+        securities_position = SecuritiesPosition(security_id=security_id, company_id=company_id, amount=amount, market_id=market_id, purchase_timestamp=purchase_timestamp, positions_deposit_id=deposit_id)
         db.session.add(securities_position)
         db.session.commit()
         return securities_position
