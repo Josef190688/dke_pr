@@ -133,63 +133,75 @@ def personen_einfuegen():
     
     return redirect(url_for('index'))
 
-# Depots der eingeloggten Person
+# Depotübersicht der eingeloggten Person
 @app.route('/depots', methods=['GET'])
 @login_required
 def depot_uebersicht():
-    try:
-        person = models.get_person(current_user.person_id)
-        deposits = person.deposits
-        return render_template('depots.html', title='Depotübersicht', person=person, deposits=deposits)
-    except Exception as e:
-        print(e)
+    return depots(current_user.person_id)
 
+# Depotübersicht einer Person (wenn Admin), sonst Depotübersicht der eingeloggten Person
 @app.route('/personen/<int:person_id>/depots', methods=['GET'])
 @login_required
 def depots(person_id):
     try:
-        person = models.get_person(person_id)
+        person = None
         if current_user.is_admin:
+            person = models.get_person(person_id)
+        else:
+            if (person_id != current_user.person_id):
+                return redirect(url_for('depot_uebersicht'))
+            person = models.get_person(current_user.person_id)
+        if (person):
             deposits = person.deposits
             return render_template('depots.html', title='Depotübersicht', person=person, deposits=deposits)
-
         return render_template('depots.html', title='Depotübersicht')
     except Exception as e:
         print(e)
+
+# Depot der eingeloggten Person
+@app.route('/depots/<int:depot_id>', methods=['GET'])
+@login_required
+def depot(depot_id):
+    return depositByPerson(current_user.person_id, depot_id)
 
 # Depot einer Person (nur für Admin)
 @app.route('/personen/<int:person_id>/depots/<int:depot_id>', methods=['GET'])
 @login_required
 def depositByPerson(person_id, depot_id):
     try:
-        person = models.get_person(person_id)
+        person = None
         if current_user.is_admin:
-            deposit = models.get_deposit(depot_id)
-            securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
-            for position in securities_positions:
-                # Name des Wertpapiers der Position zuweisen
-                response = requests.get(f'http://localhost:50051/firmen/wertpapiere/{position.security_id}')
-                if response.status_code == 200:
-                    security = response.json()
-                    security_name = security['name']
-                    if security_name:
-                        position.security_name = security_name
-                    security_currency = security['currency'] # TODO: sollte market_currency sein
-                    security_price = security['price']
-                    if security_currency and security_price:
-                        # Formatierten Preis pro Stück der Position zuweisen
-                        converted_amount = converter.convert(security_price, security_currency, person.account.displayed_currency)
-                        formatted_amount = converter.format(converted_amount, person.account.displayed_currency)
-                        position.formatted_price_per_piece = formatted_amount
-                        # Gesamtpreis der Position zuweisen
-                        position.formatted_total_price = converter.format(converted_amount * position.amount, person.account.displayed_currency)
-                    # Name der Börse der Position zuweisen
-                    response = requests.get(f'http://localhost:50052/markets/{position.market_id}', headers={'Accept': 'application/json'})
-                    market = response.json()
-                    market_name = market['market_name']
-                    if market_name:
-                        position.market_name = market_name
-            return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit, securities_positions=securities_positions)
+            person = models.get_person(person_id)
+        else:
+            if (person_id != current_user.person_id):
+                return redirect(url_for('depot', depot_id=depot_id))
+            person = models.get_person(current_user.person_id)
+        deposit = models.get_deposit(depot_id)
+        securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
+        for position in securities_positions:
+            # Name des Wertpapiers der Position zuweisen
+            response = requests.get(f'http://localhost:50051/firmen/wertpapiere/{position.security_id}')
+            if response.status_code == 200:
+                security = response.json()
+                security_name = security['name']
+                if security_name:
+                    position.security_name = security_name
+                security_currency = security['currency'] # TODO: sollte market_currency sein
+                security_price = security['price']
+                if security_currency and security_price:
+                    # Formatierten Preis pro Stück der Position zuweisen
+                    converted_amount = converter.convert(security_price, security_currency, person.account.displayed_currency)
+                    formatted_amount = converter.format(converted_amount, person.account.displayed_currency)
+                    position.formatted_price_per_piece = formatted_amount
+                    # Gesamtpreis der Position zuweisen
+                    position.formatted_total_price = converter.format(converted_amount * position.amount, person.account.displayed_currency)
+                # Name der Börse der Position zuweisen
+                response = requests.get(f'http://localhost:50052/markets/{position.market_id}', headers={'Accept': 'application/json'})
+                market = response.json()
+                market_name = market['market_name']
+                if market_name:
+                    position.market_name = market_name
+        return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit, securities_positions=securities_positions)
     except Exception as e:
         print(e)
 
