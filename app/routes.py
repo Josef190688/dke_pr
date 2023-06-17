@@ -167,12 +167,12 @@ def depositByPerson(person_id, depot_id):
             deposit = models.get_deposit(depot_id)
             securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
             for position in securities_positions:
-                response = requests.get(f"http://127.0.0.1:50051/firmen/{position.company_id}")
+                response = requests.get(f'http://localhost:50051/firmen/wertpapiere/{position.security_id}')
                 if response.status_code == 200:
-                    company_data = response.json()
-                    company_name = company_data[0].get('company_name')
-                    if company_name:
-                        position.company_name = company_name
+                    security = response.json()
+                    security_name = security['name']
+                    if security_name:
+                        position.security_name = security_name
             return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit, securities_positions=securities_positions)
     except Exception as e:
         print(e)

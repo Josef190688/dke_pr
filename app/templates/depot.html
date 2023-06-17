@@ -52,7 +52,7 @@
     <tbody>
         {% for position in securities_positions %}
         <tr data-row-id="{{ position.securities_position_id }}">
-            <td>{{ position.company_name }}</td>
+            <td>{{ position.security_name }}</td>
             <td>EUR 0.0</td>
             <td>{{ position.amount }}</td>
             <td>0</td>
@@ -126,14 +126,14 @@
                     })
                         .then(response => {
                             if (response.ok) {
-                                console.log("Depotposition erfolgreich gelöscht");
+                                console.log("Depotposition erfolgreich zum Verkauf angeboten");
                                 window.location.reload();
                             } else {
-                                console.error("Fehler beim Löschen der Depotposition");
+                                console.error("Fehler beim Verkauf der Depotposition");
                             }
                         })
                         .catch(error => {
-                            console.error("Fehler beim Löschen der Depotposition:", error);
+                            console.error("Fehler beim Verkauf der Depotposition:", error);
                         });
                 }
             });
