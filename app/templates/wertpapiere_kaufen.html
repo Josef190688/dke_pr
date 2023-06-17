@@ -13,7 +13,7 @@
 
     <!-- Wertpapier-Auswahl -->
     <div class="form-group">
-        <label class="control-label col-xs-2">Wertpapier</label>
+        <label class="control-label col-xs-2" style="padding-right: 0;">Wertpapier</label>
         <div class="col-xs-8">
             <select id="wertpapiereSelect" class="form-control"></select>
             {{ form.selectedWertpapierId() }}
@@ -41,7 +41,7 @@
     <div id="anzahl" class="form-group row" style="display: none;">
         <label class="control-label col-xs-2" style="padding-right: 0;">Stückzahl</label>
         <div class="control-label col-xs-4" style="padding-top: 0;">{{ form.amount(class="form-control") }}</div>
-        <label class="control-label col-xs-2" id="maxAnzahl">von 50</label>
+        <label class="control-label" id="maxAnzahl">von 50</label>
     </div>
     <span id="anzahlInputValid" class="text-danger" style="display: none;"></span>
 
