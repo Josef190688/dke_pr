@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import flash, make_response, redirect, render_template, request, url_for
 import requests
-from app import app, models, db
+from app import app, models, db, converter
 from app.forms import CreatePersonForm, LoginForm, UpdatePersonForm, WertpapiereKaufenForm
 from flask_login import current_user, login_required, login_user, logout_user
 
@@ -167,12 +167,28 @@ def depositByPerson(person_id, depot_id):
             deposit = models.get_deposit(depot_id)
             securities_positions = models.get_securities_positions_by_deposit(deposit.deposit_id)
             for position in securities_positions:
+                # Name des Wertpapiers der Position zuweisen
                 response = requests.get(f'http://localhost:50051/firmen/wertpapiere/{position.security_id}')
                 if response.status_code == 200:
                     security = response.json()
                     security_name = security['name']
                     if security_name:
                         position.security_name = security_name
+                    security_currency = security['currency'] # TODO: sollte market_currency sein
+                    security_price = security['price']
+                    if security_currency and security_price:
+                        # Formatierten Preis pro Stück der Position zuweisen
+                        converted_amount = converter.convert(security_price, security_currency, person.account.displayed_currency)
+                        formatted_amount = converter.format(converted_amount, person.account.displayed_currency)
+                        position.formatted_price_per_piece = formatted_amount
+                        # Gesamtpreis der Position zuweisen
+                        position.formatted_total_price = converter.format(converted_amount * position.amount, person.account.displayed_currency)
+                    # Name der Börse der Position zuweisen
+                    response = requests.get(f'http://localhost:50052/markets/{position.market_id}', headers={'Accept': 'application/json'})
+                    market = response.json()
+                    market_name = market['market_name']
+                    if market_name:
+                        position.market_name = market_name
             return render_template('depot.html', title=deposit.deposit_name, person=person, deposit=deposit, securities_positions=securities_positions)
     except Exception as e:
         print(e)

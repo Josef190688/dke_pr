@@ -53,10 +53,10 @@
         {% for position in securities_positions %}
         <tr data-row-id="{{ position.securities_position_id }}">
             <td>{{ position.security_name }}</td>
-            <td>EUR 0.0</td>
+            <td>{{ position.formatted_price_per_piece }}</td>
             <td>{{ position.amount }}</td>
-            <td>0</td>
-            <td>{{ position.purchase_timestamp }} {{ position.market_id }}</td>
+            <td>{{ position.formatted_total_price }}</td>
+            <td>{{ position.purchase_timestamp }} {{ position.market_name }}</td>
         </tr>
         {% endfor %}
     </tbody>

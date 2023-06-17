@@ -25,7 +25,7 @@
 
     <!-- Börsen-Auswahl -->
     <div class="form-group">
-        <label class="control-label col-xs-2">Börse</label>
+        <label class="control-label col-xs-2" style="padding-right: 0;">Börse</label>
         <div class="col-xs-8">
             <select id="boersenSelect" class="form-control" style="display: none;"></select>
             {{ form.selectedBoersenId() }}
@@ -38,20 +38,21 @@
     <br>
 
     <!-- Verfügbare Anzahl an Wertpapieren -->
-    <div id="anzahl" class="form-group" style="display: none;">
-        <label class="control-label col-xs-2">Stückzahl</label>
-        <div class="col-xs-8">
-            <div class="form-group">{{ form.amount(class="form-control") }}</div>
-            <label id="maxAnzahl"> von 50</label>
-            <span id="anzahlInputValid" class="text-danger" style="display: none;"></span>
-        </div>
+    <div id="anzahl" class="form-group row" style="display: none;">
+        <label class="control-label col-xs-2" style="padding-right: 0;">Stückzahl</label>
+        <div class="control-label col-xs-4" style="padding-top: 0;">{{ form.amount(class="form-control") }}</div>
+        <label class="control-label col-xs-2" id="maxAnzahl">von 50</label>
     </div>
+    <span id="anzahlInputValid" class="text-danger" style="display: none;"></span>
 
     <br>
 
     <!-- Submit und Abbrechen Buttons -->
     <div class="form-group mt-4">
         {{ form.submit(id="formSubmitButton", class="btn btn-primary", disabled="disabled") }}
+        {{ form.depot_id() }}
+        {{ form.price() }}
+        {{ form.currency() }}
         <a href="{{ url_for('depositByPerson', person_id=person.person_id, depot_id=deposit.deposit_id) }}"
             class="btn btn-secondary">Abbrechen</a>
     </div>
@@ -61,6 +62,8 @@
 <!------------------------------------------------------------------------------------------------------->
 
 <script>
+
+    // Angebot einer Börse abrufen und der Börse zuweisen
     function fetchOfferForBoerse(boerse) {
         const marketId = boerse.market_id;
 
@@ -86,6 +89,9 @@
         const anzahlElement = document.getElementById('anzahl');
         const amountInputElement = document.getElementById('amountInput');
 
+        document.getElementById('depot_id').value = '{{ deposit.deposit_id }}';
+
+        // Validierung für Aktivierung des Kaufbuttons
         function validateInputs() {
             const selectedWertpapier = wertpapierSelectElement.value;
             const selectedBoerse = boerseSelectElement.value;
@@ -167,6 +173,9 @@
         boerseSelectElement.addEventListener('change', function () {
             const selectedValue = boerseSelectElement.value;
             document.getElementById('selectedBoersenId').value = selectedValue;
+            if (boersen[selectedValue]) {
+                document.getElementById('currency').value = boersen[selectedValue].market_currency_id;
+            }
         });
 
         // Anzahl Input-Validation

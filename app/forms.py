@@ -50,4 +50,7 @@ class WertpapiereKaufenForm(FlaskForm):
     selectedBoersenId = HiddenField()
     comp_id = HiddenField()
     amount = IntegerField('Anzahl', render_kw={'class': 'form-control', 'id': 'amountInput'})
+    depot_id = HiddenField()
+    price = HiddenField()
+    currency = HiddenField()
     submit = SubmitField('kaufen')
