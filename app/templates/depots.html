@@ -164,11 +164,11 @@
                 } else {
                     console.error("Fehler beim Erstellen des Depots");
                 }
-                window.location.href = "/depots/{{ person.person_id }}";
+                window.location.href = "/personen/{{ person.person_id }}/depots";
             })
             .catch(error => {
                 alert("Fehler beim Erstellen des Depots", error);
-                window.location.href = "/depots/{{ person.person_id }}";
+                window.location.href = "/personen/{{ person.person_id }}/depots";
             });
     };
 </script>
@@ -208,11 +208,11 @@
             .then(response => response.text())
             .then(text => {
                 console.log(text);
-                window.location.href = "/depots/{{ person.person_id }}";
+                window.location.href = "/personen/{{ person.person_id }}/depots";
             })
             .catch(error => {
                 console.log(error);
-                window.location.href = "/depots/{{ person.person_id }}";
+                window.location.href = "/personen/{{ person.person_id }}/depots";
             });
     };
 </script>
@@ -258,11 +258,11 @@
                 .then(response => response.text())
                 .then(text => {
                     console.log(text);
-                    window.location.href = "/depots/{{ person.person_id }}";
+                    window.location.href = "/personen/{{ person.person_id }}/depots";
                 })
                 .catch(error => {
                     console.log(error);
-                    window.location.href = "/depots/{{ person.person_id }}";
+                    window.location.href = "/personen/{{ person.person_id }}/depots";
                 });
         };
     }
