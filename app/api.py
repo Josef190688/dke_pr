@@ -1,5 +1,6 @@
 from flask_login import current_user, login_required
-from app import app, models
+import requests
+from app import app, models, converter
 from flask import flash, make_response, redirect, request, jsonify, url_for
 
 # CRUD Personen
@@ -84,18 +85,13 @@ def create_depot(person_id):
             person = models.get_person(person_id)
             if not person:
                 return jsonify({'error': 'Person not found'}), 404
-
+            
             data = request.get_json()
             deposit_name = data.get('deposit_name')
-
-            # Validiere und erstelle das Depot
             if not deposit_name:
                 return jsonify({'error': 'Depot name is required'}), 400
-
-            # Depot erstellen und der Person zuordnen
+            
             deposit = models.create_deposit(person_id, deposit_name)
-
-            # Gib die Erfolgsnachricht oder das erstellte Depot zurück
             return jsonify({'message': 'Depot created successfully', 'deposit': deposit.to_dict()}), 201
         except Exception as e:
             return jsonify({'error': e}), 500
@@ -130,27 +126,57 @@ def sell(person_id, deposit_id, position_id):
         try:
             person = models.get_person(person_id)
             if not person:
+                flash('Person nicht gefunden')
                 return jsonify({'error': 'Person nicht gefunden'}), 404
 
             deposit = models.get_deposit(deposit_id)
             if not deposit or deposit.person.person_id != person_id:
+                flash('Depot nicht gefunden oder gehört nicht zur Person')
                 return jsonify({'error': 'Depot nicht gefunden oder gehört nicht zur Person'}), 404
             
             position = models.get_securities_position(position_id)
             if not position or position.deposit.deposit_id != deposit_id:
+                flash('Depotposition nicht gefunden oder gehört nicht zum angegebenen Depot')
                 return jsonify({'error': 'Depotposition nicht gefunden oder gehört nicht zum angegebenen Depot'}), 404
 
-            data = {
-                'security_id': '',
-                'amount': '',
-                'depot_id': deposit.deposit_id,
-                'security_price': '',
-                'currency': ''
-            }
+            # Wertpapierpreis abfragen
+            response = requests.get(f'http://localhost:50051/firmen/wertpapiere/{position.security_id}', headers={'Content-Type': 'application/json'})
+            security_price = None
+            if response.status_code == 200:
+                security = response.json()
+                security_price = security['price']
+                security_currency = security['currency']
+                response = requests.get(f'http://localhost:50052/markets/{position.market_id}', headers={'Accept': 'application/json'})
+                if response.status_code == 200:
+                    market = response.json()
+                    market_currency = market['market_currency_code']
 
-            models.delete_securities_position(position.securities_position_id)
-            return jsonify({'message': 'Depotposition erfolgreich gelöscht'}), 200
+                    converted_price = converter.convert(security_price, security_currency, market_currency)
+                    
+                    # TODO: Prüfen, ob gehug Geld am Konto, sonst Abbruch
+                    print(converted_price)
+                    data = {
+                        'id': position.security_id,
+                        'amount': position.amount,
+                        'depot_id': deposit.deposit_id,
+                        'price': converted_price,
+                        'currency': market_currency
+                    }
+                    response = requests.post(f'http://localhost:50052/markets/{position.market_id}/offer', json=data, headers={'Content-Type': 'application/json'})
+                    if response.status_code == 200:
+                        models.delete_securities_position(position.securities_position_id)
+                        flash('Wertpapier erfolgreich verkauft')
+                        return jsonify({'message': 'Wertpapier erfolgreich verkauft'}), 200
+                    else:
+                        return jsonify({'error': response.text}), response.status_code
+                else:
+                    flash(response.text)
+                    return jsonify({'error': response.text}), response.status_code
+            else:
+                flash(response.text)
+                return jsonify({'error': response.text}), response.status_code
         except Exception as e:
+            flash(e)
             return jsonify({'error': e}), 500
         
 # Öffentliche API
