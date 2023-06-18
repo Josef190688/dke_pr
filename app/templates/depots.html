@@ -72,11 +72,11 @@
         </tr>
         <tr>
             <td style="padding-right: 100px;">Depot-Vermögen</td>
-            <td class="text-right">{{ person.account.displayed_currency }} 2500,00</td>
+            <td class="text-right">{{ person.account.displayed_currency }} {{ '%.2f' % gesamtwert }}</td>
         </tr>
         <tr style="border-top: 1px solid #ddd; font-weight: bold;">
             <td style="padding-right: 100px;">Gesamt-Vermögen</td>
-            <td class="text-right">{{ person.account.displayed_currency }} 2500,00</td>
+            <td class="text-right">{{ person.account.displayed_currency }} {{ '%.2f' % (person.account.account_balance_in_euro + gesamtwert) }}</td>
         </tr>
     </tbody>
 </table>
@@ -119,7 +119,7 @@
         <tr data-row-id="{{ deposit.deposit_id }}" , data-has-positions="FALSE">
             {% endif %}
             <td style="vertical-align: middle;">{{ deposit.deposit_name }}</td>
-            <td style="vertical-align: middle;">EUR 0,00</td>
+            <td style="vertical-align: middle;">{{ person.account.displayed_currency }} {{ '%.2f' % deposit.gesamtwert }}</td>
             <input type="hidden" class="has-positions" value="{{ deposit.securities_positions }}">
         </tr>
         {% endfor %}

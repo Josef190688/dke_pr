@@ -153,7 +153,15 @@ def depots(person_id):
             person = models.get_person(current_user.person_id)
         if (person):
             deposits = person.deposits
-            return render_template('depots.html', title='Depotübersicht', person=person, deposits=deposits)
+            gesamtwert = 0.0
+            for depot in deposits:
+                positions = models.get_securities_positions_by_deposit(depot.deposit_id)
+                price = 0.0
+                for position in positions:
+                    price += position.get_price()
+                depot.gesamtwert = price
+                gesamtwert += depot.gesamtwert
+            return render_template('depots.html', title='Depotübersicht', person=person, deposits=deposits, gesamtwert=gesamtwert)
         return render_template('depots.html', title='Depotübersicht')
     except Exception as e:
         print(e)

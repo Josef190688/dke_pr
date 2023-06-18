@@ -1,5 +1,7 @@
 from typing import Union
-from app import db, login
+
+import requests
+from app import db, login, converter
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
@@ -83,6 +85,21 @@ class SecuritiesPosition(db.Model):
     positions_deposit_id = db.Column(db.Integer, db.ForeignKey('deposit.deposit_id'), nullable=False)
 
     deposit = db.relationship('Deposit', backref='securities_positions')
+
+    def get_price(self):
+        price = 0.0
+        response = requests.get(f'http://localhost:50051/firmen/wertpapiere/{self.security_id}', headers={'Content-Type': 'application/json'})
+        security_price = None
+        if response.status_code == 200:
+            security = response.json()
+            security_price = security['price']
+            security_currency = security['currency']
+            response = requests.get(f'http://localhost:50052/markets/{self.market_id}', headers={'Accept': 'application/json'})
+            if response.status_code == 200:
+                market = response.json()
+                market_currency = market['market_currency_code']
+                price = converter.convert(security_price * self.amount, security_currency, market_currency)
+        return price
 
 # CRUD Personenverwaltung
 # ------------------------------------------------------------------------------------------
