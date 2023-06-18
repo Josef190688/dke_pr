@@ -165,8 +165,8 @@ def sell(person_id, deposit_id, position_id):
                     response = requests.post(f'http://localhost:50052/markets/{position.market_id}/offer', json=data, headers={'Content-Type': 'application/json'})
                     if response.status_code == 200:
                         models.delete_securities_position(position.securities_position_id)
-                        flash('Wertpapier erfolgreich verkauft')
-                        return jsonify({'message': 'Wertpapier erfolgreich verkauft'}), 200
+                        flash('Wertpapier erfolgreich zum Verkauf angeboten')
+                        return jsonify({'message': 'Wertpapier erfolgreich zum Verkauf angeboten'}), 200
                     else:
                         return jsonify({'error': response.text}), response.status_code
                 else:
