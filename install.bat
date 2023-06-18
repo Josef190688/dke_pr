@@ -12,6 +12,7 @@ python -m pip install python-dotenv
 python -m pip install mysqlclient
 python -m pip install flask_login
 python -m pip install flask-bootstrap
+python -m pip install flask-cors
 python -m pip install pipreqs
 python -m pipreqs .
 python -m pip install -r requirements.txt
