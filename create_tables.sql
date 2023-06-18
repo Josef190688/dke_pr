@@ -30,14 +30,16 @@ CREATE TABLE `web122_db10`.`person` (
 
 CREATE TABLE `web122_db10`.`deposit` (
   `deposit_id` INT NOT NULL AUTO_INCREMENT COMMENT "Eindeutige ID des Depots einer Person",
-  `deposit_name` VARCHAR(255) NOT NULL UNIQUE COMMENT "Eindeutiger Depotname",
+  `deposit_name` VARCHAR(255) NOT NULL COMMENT "Eindeutiger Depotname je Person",
   `deposits_person_id` INT NOT NULL COMMENT "Eindeutige ID des Kontos einer Person",
   PRIMARY KEY (`deposit_id`),
   CONSTRAINT `FKC_person`
     FOREIGN KEY (`deposits_person_id`)
     REFERENCES `web122_db10`.`person` (`person_id`)
     ON DELETE CASCADE
-    ON UPDATE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `UQ_deposits_person_deposit_name`
+    UNIQUE (`deposits_person_id`, `deposit_name`)
 );
 
 CREATE TABLE `web122_db10`.`securities_position` (
