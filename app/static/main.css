@@ -1,3 +1,14 @@
+body {
+    background-image: url('/static/background.jpg');
+    background-size: auto 100%;
+    background-size: 100% auto;
+    background-color: rgba(252,252,252, 0.5);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: #1D3557;
+    font-family: "Helvetica";
+}
+
 .table-hover tbody tr:hover {
     background-color: #f8f9fa;
     /* Hintergrundfarbe für den Hover-Effekt */
