@@ -63,6 +63,15 @@
 </table>
 {% endif %}
 
+{% if current_user.is_admin %}
+<a href="{{ url_for('depots', person_id=person.person_id) }}" class="btn btn-secondary">Zurück zur Depotübersicht</a>
+{% else %}
+<a href="{{ url_for('depot_uebersicht') }}" class="btn btn-secondary">Zurück zur Depotübersicht</a>
+{% endif %}
+
+<!-- JavaScript -->
+<!------------------------------------------------------------------------------------------------------->
+
 {% if securities_positions %}
 <script>
     // Kontextmenü und Hover-Verhalten für Tabelle implementieren
