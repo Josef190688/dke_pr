@@ -229,13 +229,13 @@ def wertpapiere_kaufen(person_id, depot_id):
             print(data2)
             response = requests.put(f"http://127.0.0.1:50052/markets/{form.selectedBoersenId.data}/buy", json=data)
             if response.status_code == 200:
-                flash(response.text, 'success')
                 models.create_securities_position(security_id=form.selectedWertpapierId.data,
                                                   company_id=form.comp_id.data,
                                                   amount=form.amount.data,
                                                   market_id=form.selectedBoersenId.data,
                                                   purchase_timestamp=datetime.now(),
                                                   deposit_id=depot_id)
+                flash('Kauf war erfolgreich', 'success')
                 return redirect(url_for('depositByPerson', person_id=person_id, depot_id=depot_id))
             else:
                 flash(response.text, 'error')
