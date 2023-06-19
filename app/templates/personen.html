@@ -25,7 +25,7 @@
     <ul id="context-menu" class="dropdown-menu">
         <li><a id="show-deposit" href="#">Zur Depotübersicht</a></li>
         <li><a id="edit-person" href="#">Bearbeiten</a></li>
-        <li><a id="delete-person" href="#">Löschen</a></li>
+        <li id="delete_person_button"><a id="delete-person" href="#">Löschen</a></li>
     </ul>
 </div>
 <!-- Personen-Tabelle -->
@@ -44,7 +44,11 @@
     </thead>
     <tbody>
         {% for person in persons %}
-        <tr data-row-id="{{ person.person_id }}">
+        {% if person.deposits %}
+        <tr data-row-id="{{ person.person_id }}" , data-has-positions="TRUE">
+            {% else %}
+        <tr data-row-id="{{ person.person_id }}" , data-has-positions="FALSE">
+            {% endif %}
             <td style="vertical-align: middle;">{{ person.person_id }}</td>
             <td style="vertical-align: middle;">{{ person.username }}</td>
             <td style="vertical-align: middle;">{{ person.first_name }}</td>

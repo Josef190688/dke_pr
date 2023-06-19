@@ -23,6 +23,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     row.classList.remove("active");
                 });
                 this.classList.add("active");
+
+                // Löschen deaktivieren, wenn Depots vorhanden
+                let deletePersonButton = document.getElementById('delete_person_button');
+                if (deletePersonButton) {
+                    let hasPositions = (this.getAttribute("data-has-positions") === "TRUE");
+                    if (hasPositions) {
+                        deletePersonButton.classList.add("disabled");
+                    } else {
+                        deletePersonButton.classList.remove("disabled");
+                    }
+                }
             }
         });
     });
@@ -49,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Kontextemenü: Zur Depotübersicht
     let showDepositButton = document.getElementById('show-deposit');
     showDepositButton.addEventListener("click", function (event) {
-        window.location.href = "/personen/" + selectedRowID + "/depots" ;
+        window.location.href = "/personen/" + selectedRowID + "/depots";
     });
 
     // Kontextmenü: Bearbeiten
@@ -57,30 +68,33 @@ document.addEventListener("DOMContentLoaded", function () {
     editPersonButton.addEventListener("click", function (event) {
         window.location.pathname = "/person_aktualisieren/" + selectedRowID;
     });
-    
+
     // Kontextmenü: Löschen
     let deletePersonButton = document.getElementById('delete-person');
     deletePersonButton.addEventListener("click", function (event) {
-        fetch(`/api/personen/${selectedRowID}`, {
-            method: 'DELETE',
-        })
-        .then(response => {
-            if (response.status === 204) {
-                window.location.href = "/index";
-            } else if (response.status === 302) {
-                // Weiterleitung empfangen
-                let redirectUrl = response.headers.get('Location');
-                console.log('status ist 302', redirectUrl)
-                // Hier können Sie die gewünschte Aktion ausführen, z.B. zur neuen URL weiterleiten
-                window.location.href = redirectUrl;
-            } else {
-                // Hier können Sie mit der normalen Antwort umgehen
-                return response.text();
+        if (document.querySelector(`tr[data-row-id="${selectedRowID}"]`) && document.querySelector(`tr[data-row-id="${selectedRowID}"]`).getAttribute("data-has-positions") === "TRUE") {
+            alert("Löschen nicht möglich, da die Personen noch Depots besitzt.");
+        } else {
+            let confirmDelete = confirm("Sind Sie sicher, dass Sie die Person löschen möchten?");
+            if (confirmDelete) {
+                fetch(`/api/personen/${selectedRowID}`, {
+                    method: 'DELETE',
+                })
+                    .then(response => {
+                        if (response.status === 204) {
+                            window.location.href = "/index";
+                        } else if (response.status === 302) {
+                            let redirectUrl = response.headers.get('Location');
+                            console.log('status ist 302', redirectUrl)
+                            window.location.href = redirectUrl;
+                        } else {
+                            return response.text();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fehler beim Löschen der Person:', error);
+                    });
             }
-        })
-        .catch(error => {
-            console.error('Fehler beim Löschen der Person:', error);
-        });
-        
+        }
     });
 });
