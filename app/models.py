@@ -100,6 +100,17 @@ class SecuritiesPosition(db.Model):
                 market_currency = market['market_currency_code']
                 price = converter.convert(security_price * self.amount, security_currency, market_currency)
         return price
+    
+    def to_dict(self):
+        return {
+            'securities_position_id': self.securities_position_id,
+            'security_id': self.security_id,
+            'company_id': self.company_id,
+            'amount': self.amount,
+            'market_id': self.market_id,
+            'purchase_timestamp': self.purchase_timestamp.isoformat(),
+            'positions_deposit_id': self.positions_deposit_id
+        }
 
 # CRUD Personenverwaltung
 # ------------------------------------------------------------------------------------------
