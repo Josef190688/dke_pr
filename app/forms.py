@@ -53,4 +53,5 @@ class WertpapiereKaufenForm(FlaskForm):
     depot_id = HiddenField()
     price = HiddenField()
     currency = HiddenField()
+    total_to_pay = HiddenField()
     submit = SubmitField('kaufen')

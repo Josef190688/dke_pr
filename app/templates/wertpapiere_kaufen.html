@@ -37,15 +37,78 @@
 
     <br>
 
-    <!-- Verfügbare Anzahl an Wertpapieren -->
+    <!-- Anzahl-Input und maximale Anzahl -->
     <div id="anzahl" class="form-group row" style="display: none;">
         <label class="control-label col-xs-2" style="padding-right: 0;">Stückzahl</label>
         <div class="control-label col-xs-4" style="padding-top: 0;">{{ form.amount(class="form-control") }}</div>
         <label class="control-label" id="maxAnzahl">von 50</label>
     </div>
-    <span id="anzahlInputValid" class="text-danger" style="display: none;"></span>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-8">
+            <span id="anzahlInputValid" class="text-danger" style="display: none;"></span>
+        </div>
+    </div>
+
+    <!-- Kontostand -->
+    <div class="form-group">
+        <label class="control-label col-xs-2" style="padding-right: 0;">Kontostand</label>
+        <div class="col-xs-8">
+            <input type="text" class="form-control col-xs-8"
+                value="{{ person.account.displayed_currency }} {{ person.account.account_balance_in_euro }}" readonly>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-8">
+            <span id="enoughMoney" class="text-danger" style="display: none;">Der Kaufpreis übersteigt den
+                Kontostand.</span>
+        </div>
+    </div>
 
     <br>
+
+    <div id="prices" style="display: none;">
+        <!-- Preis in Originalwährung -->
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <label style="text-align: left;">Stückpreis (Originalwährung)</label>
+        </div>
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <label style="text-align: left;">Gesamtpreis (Originalwährung)</label>
+        </div>
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <input id='preis_stk_original' class="form-control col-xs-6" type="text" value="1.0" readonly>
+        </div>
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <input id='preis_gesamt_original' class="form-control col-xs-6" type="text" value="1.0" readonly>
+        </div>
+
+        <!-- Preis in Anzeigewährung -->
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <label style="text-align: left;">Stückpreis (Depotwährung)</label>
+        </div>
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <label style="text-align: left;">Gesamtpreis (Depotwährung)</label>
+        </div>
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <input id='preis_stk_depot' class="form-control col-xs-6" type="text" value="1.0" readonly>
+        </div>
+        <div class="form-group col-xs-6" style="margin-left: 0; margin-right: 0;">
+            <input id='preis_gesamt_depot' class="form-control col-xs-6" type="text" value="1.0" readonly>
+        </div>
+
+        <br>
+
+        <!-- Transaktionsgebühren -->
+        <div class="form-group">
+            <label class="control-label col-xs-4" style="padding-right: 0;">Transaktionsgebühren</label>
+            <div class="col-xs-6">
+                <input id="transaktionsgebühren" type="text" class="form-control col-xs-8"
+                    value="{{ person.account.displayed_currency }} {{ person.account.account_balance_in_euro }}"
+                    readonly>
+            </div>
+        </div>
+
+        <br>
+    </div>
 
     <!-- Submit und Abbrechen Buttons -->
     <div class="form-group mt-4">
@@ -53,6 +116,7 @@
         {{ form.depot_id() }}
         {{ form.price() }}
         {{ form.currency() }}
+        {{ form.total_to_pay() }}
         <a href="{{ url_for('depositByPerson', person_id=person.person_id, depot_id=deposit.deposit_id) }}"
             class="btn btn-secondary">Abbrechen</a>
     </div>
@@ -88,54 +152,148 @@
         const boerseSelectElement = document.getElementById('boersenSelect');
         const anzahlElement = document.getElementById('anzahl');
         const amountInputElement = document.getElementById('amountInput');
-
         document.getElementById('depot_id').value = '{{ deposit.deposit_id }}';
 
-        // Validierung für Aktivierung des Kaufbuttons
+        // Validierung für Aktivierung des Kaufbuttons und Anzeigen / Ausblenden der Elemente
         function validateInputs() {
             const selectedWertpapier = wertpapierSelectElement.value;
             const selectedBoerse = boerseSelectElement.value;
 
-            const max = document.getElementById('maxAnzahl');
-            const numberPattern = /\d+/;
-            const match = max.innerHTML.match(numberPattern);
-            let extractedNumber;
-            if (match) {
-                extractedNumber = parseInt(match[0]);
-                if (!isNaN(amountInputElement.value) && amountInputElement.value > extractedNumber) {
-                    document.getElementById('anzahlInputValid').style.display = 'block';
-                    document.getElementById('anzahlInputValid').innerHTML = 'Die zu kaufende Stückzahl ist größer als die verfügbare Stückzahl.'
-                } else {
-                    document.getElementById('anzahlInputValid').style.display = 'none';
-                }
+            // Preise und Transaktionsgebühren anzeigen / ausblenden
+            if (selectedWertpapier && selectedWertpapier && amountInputElement.value !== '' && !isNaN(amountInputElement.value)) {
+                document.getElementById('prices').style.display = 'block';
+                console.log('wertpapiere[wertpapierSelectElement.value]', wertpapiere[wertpapierSelectElement.value])
+                console.log('price?', wertpapiere[wertpapierSelectElement.value].price)
+                // Stückpreis in Börsenwährung ermitteln
+                fetch('http://localhost:50050/currency_converter/' +
+                    wertpapiere[wertpapierSelectElement.value].price + '/' +
+                    wertpapiere[wertpapierSelectElement.value].currency + '/' +
+                    boersen[boerseSelectElement.value].market_currency_code,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.text())
+                    .then(text => {
+                        // Preise in Börsenwährung setzen
+                        document.getElementById('preis_stk_original').value =
+                            boersen[boerseSelectElement.value].market_currency_code + ' ' + parseFloat(text).toFixed(2);
+                        document.getElementById('preis_gesamt_original').value =
+                            boersen[boerseSelectElement.value].market_currency_code + ' ' +
+                            (parseFloat(text).toFixed(2) * parseInt(amountInputElement.value)).toFixed(2);
+                        // Stückpreis in Depotwährung ermitteln
+                        fetch('http://localhost:50050/currency_converter/' +
+                            wertpapiere[wertpapierSelectElement.value].price + '/' +
+                            wertpapiere[wertpapierSelectElement.value].currency + '/' +
+                            '{{ person.account.displayed_currency }}',
+                            {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                            })
+                            .then(response => response.text())
+                            .then(text => {
+                                // Preise in Depotwährung setzen
+                                let gesamtpreisInDepotwährung = (parseFloat(text).toFixed(2) * parseInt(amountInputElement.value)).toFixed(2);
+                                document.getElementById('preis_stk_depot').value =
+                                    '{{ person.account.displayed_currency }}' + ' ' + parseFloat(text).toFixed(2);
+                                document.getElementById('preis_gesamt_depot').value =
+                                    '{{ person.account.displayed_currency }}' + ' ' +
+                                    gesamtpreisInDepotwährung;
+                                // Transaktionsgebühren in Depotwährung ermitteln
+                                fetch('http://localhost:50050/currency_converter/' +
+                                    boersen[boerseSelectElement.value].market_fee + '/' +
+                                    boersen[boerseSelectElement.value].market_currency_code + '/' +
+                                    '{{ person.account.displayed_currency }}',
+                                    {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                    })
+                                    .then(response => response.text())
+                                    .then(text => {
+                                        // Transaktionsgebühren in Depotwährung setzen
+                                        transaktionsgebühren = parseFloat(text).toFixed(2);
+                                        document.getElementById('transaktionsgebühren').value =
+                                            '{{ person.account.displayed_currency }}' + ' ' + transaktionsgebühren;
+
+                                        // Gesamtpreis zum Abbuchen für's Depot setzen
+                                        document.getElementById('total_to_pay').value = parseFloat(transaktionsgebühren) + parseFloat(gesamtpreisInDepotwährung);
+
+                                        // Liquidität prüfen
+                                        let enoughMoney = true;
+                                        if ((parseFloat(transaktionsgebühren) + parseFloat(gesamtpreisInDepotwährung)) > parseFloat('{{ person.account.account_balance_in_euro }}')) {
+                                            enoughMoney = false;
+                                            document.getElementById('enoughMoney').style.display = 'block';
+                                        } else {
+                                            document.getElementById('enoughMoney').style.display = 'none';
+                                        }
+
+                                        // Eingegebene Stückzahl validieren
+                                        const max = document.getElementById('maxAnzahl');
+                                        const numberPattern = /\d+/;
+                                        const match = max.innerHTML.match(numberPattern);
+                                        let extractedNumber;
+                                        if (match) {
+                                            extractedNumber = parseInt(match[0]);
+                                            if (!isNaN(amountInputElement.value) && amountInputElement.value > extractedNumber) {
+                                                document.getElementById('anzahlInputValid').style.display = 'block';
+                                                document.getElementById('anzahlInputValid').innerHTML = 'Die zu kaufende Stückzahl ist größer als die verfügbare Stückzahl.'
+                                            } else {
+                                                document.getElementById('anzahlInputValid').style.display = 'none';
+                                            }
+                                        } else {
+                                            document.getElementById('anzahlInputValid').style.display = 'block';
+                                            document.getElementById('anzahlInputValid').innerHTML = 'Die Eingabe muss eine gültige Zahl sein.'
+                                        }
+
+                                        // Überprüfen, ob beide Werte ausgewählt wurden und die Anzahl eine gültige Zahl ist
+                                        const isValid =
+                                            selectedWertpapier !== '' &&
+                                            selectedBoerse !== '' &&
+                                            extractedNumber &&
+                                            !isNaN(amountInputElement.value) &&
+                                            amountInputElement.value > 0 &&
+                                            amountInputElement.value <= extractedNumber &&
+                                            enoughMoney;
+
+                                        // Button-Status aktualisieren
+                                        formSubmitButton.disabled = !isValid;
+                                    })
+                                    .catch(error => {
+                                        console.log(error);
+                                    });
+                            })
+                            .catch(error => {
+                                console.log(error);
+                            });
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
             } else {
-                document.getElementById('anzahlInputValid').style.display = 'block';
-                document.getElementById('anzahlInputValid').innerHTML = 'Die Eingabe muss eine gültige Zahl sein.'
+                document.getElementById('prices').style.display = 'none';
             }
-
-            // Überprüfen, ob beide Werte ausgewählt wurden und die Anzahl eine gültige Zahl ist
-            const isValid =
-                selectedWertpapier !== '' &&
-                selectedBoerse !== '' &&
-                extractedNumber &&
-                !isNaN(amountInputElement.value) &&
-                amountInputElement.value > 0 && amountInputElement.value <= extractedNumber;
-
-            // Button-Status aktualisieren
-            formSubmitButton.disabled = !isValid;
         }
 
         // Wertpapiert selektiert
         // -> Börsen anzeigen, die das jeweilige Wertpapier anbieten
         wertpapierSelectElement.addEventListener('change', function () {
+            // zurücksetzen der Ursprungswerte
             boerseSelectElement.innerHTML = '';
+            amountInputElement.value = '';
+            document.getElementById('enoughMoney').style.display = 'none';
+
             const selectedValue = wertpapierSelectElement.value;
             document.getElementById('selectedWertpapierId').value = selectedValue;
-            wertpapiere.forEach(wertpapier => {
-                if (wertpapier.id == selectedValue) {
-                    document.getElementById('comp_id').value = wertpapier.comp_id;
-                }
-            });
+            if (wertpapiere[selectedValue]) {
+                const wertpapier = wertpapiere[selectedValue];
+                document.getElementById('comp_id').value = wertpapier.comp_id;
+            }
             console.log('Ausgewählte Wertpapier-ID:', selectedValue);
             console.log("Börsen, die das Wertpapier anbieten:", wertpapiereZuBoersen[selectedValue])
             const boersenForWertpapier = wertpapiereZuBoersen[selectedValue];
@@ -171,15 +329,22 @@
 
         // Börse selektiert
         boerseSelectElement.addEventListener('change', function () {
+            // zurücksetzen der Ursprungswerte
+            amountInputElement.value = '';
+            document.getElementById('enoughMoney').style.display = 'none';
+
             const selectedValue = boerseSelectElement.value;
             document.getElementById('selectedBoersenId').value = selectedValue;
             if (boersen[selectedValue]) {
+                // Währung der Börse ins Form geben
                 document.getElementById('currency').value = boersen[selectedValue].market_currency_id;
             }
+            validateInputs();
         });
 
         // Anzahl Input-Validation
         amountInputElement.addEventListener('input', function () {
+            document.getElementById('enoughMoney').style.display = 'none';
             validateInputs();
         });
 
@@ -242,14 +407,15 @@
                             .then(response => response.json())
                             .then(json => {
                                 console.log('wertpapiere', json)
-                                wertpapiere = json;
                                 json.sort((a, b) => a.name.localeCompare(b.name));
                                 json.forEach(wertpapier => {
                                     const option = document.createElement('option');
                                     option.text = wertpapier.name;
                                     option.value = wertpapier.id;
                                     wertpapierSelectElement.add(option);
+                                    wertpapiere[wertpapier.id] = wertpapier;
                                 });
+
                                 // Programmatisch das "change"-Event auslösen
                                 const event = new Event('change');
                                 wertpapierSelectElement.dispatchEvent(event);
