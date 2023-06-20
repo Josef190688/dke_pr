@@ -19,6 +19,13 @@
     person.last_name }}</h4>
 {% endif %}
 
+<!-- Zurück zur Depotübersicht Button -->
+{% if current_user.is_admin %}
+<a href="{{ url_for('depots', person_id=person.person_id) }}" class="btn btn-secondary">Zurück zur Depotübersicht</a>
+{% else %}
+<a href="{{ url_for('depot_uebersicht') }}" class="btn btn-secondary">Zurück zur Depotübersicht</a>
+{% endif %}
+
 <!-- Infotext, wenn keine Depots vorhanden -->
 {% if not securities_positions %}
 <br>
@@ -51,34 +58,111 @@
     </thead>
     <tbody>
         {% for position in securities_positions %}
-        <tr data-row-id="{{ position.securities_position_id }}">
+        <tr data-row-id="{{ position.securities_position_id }}" data-company-id="{{ position.company_id }}">
             <td>{{ position.security_name }}</td>
             <td>{{ position.formatted_price_per_piece }}</td>
             <td>{{ position.amount }}</td>
             <td>{{ position.formatted_total_price }}</td>
-            <td>{{ position.purchase_timestamp }} {{ position.market_name }}</td>
+            <td data-market-id="{{ position.market_id }}">{{ position.purchase_timestamp }} {{ position.market_name }}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-{% endif %}
 
-{% if current_user.is_admin %}
-<a href="{{ url_for('depots', person_id=person.person_id) }}" class="btn btn-secondary">Zurück zur Depotübersicht</a>
-{% else %}
-<a href="{{ url_for('depot_uebersicht') }}" class="btn btn-secondary">Zurück zur Depotübersicht</a>
+<br>
+
+<div id="chart-container">
+    <canvas id="chart"></canvas>
+</div>
 {% endif %}
 
 <!-- JavaScript -->
 <!------------------------------------------------------------------------------------------------------->
 
 {% if securities_positions %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Kontextmenü und Hover-Verhalten für Tabelle implementieren
+    // Chart
     // ============================================================================
     document.addEventListener("DOMContentLoaded", function () {
         let selectedRowID = null;
         let rows = document.querySelectorAll(".table-hover tbody tr");
+
+        function createPieChart(data) {
+            var ctx = document.getElementById('chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: data.colors,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                var dataset = data.datasets[tooltipItem.datasetIndex];
+                                var value = dataset.data[tooltipItem.index];
+                                return data.labels[tooltipItem.index] + ': €' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Daten für Chart sammeln und Chart erstellen
+        let companyIDs = Array.from(new Set([...rows].map(row => row.getAttribute('data-company-id'))));
+        let values = Array(companyIDs.length).fill(0);
+        rows.forEach(function (row) {
+            var companyID = row.getAttribute('data-company-id');
+            var index = companyIDs.indexOf(companyID);
+            var totalValue = row.cells[3].textContent; // Gesamtbetrag auslesen
+            totalValue = totalValue.replace('EUR ', '');
+            values[index] += parseFloat(totalValue); // Summieren des Werts zur entsprechenden Company-ID
+        });
+        let company_names_or_ids = [];
+        const fetchPromises = companyIDs.map(comp_id => {
+            return fetch('http://127.0.0.1:50051/firmen/' + comp_id, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(json => {
+                    if (json[0] && json[0].company_name) {
+                        return json[0].company_name;
+                    } else {
+                        return comp_id;
+                    }
+                })
+                .catch(error => {
+                    console.log(error);
+                    return comp_id;
+                });
+        });
+
+        Promise.all(fetchPromises)
+            .then(company_names_or_ids => {
+                if (company_names_or_ids.length === companyIDs.length) {
+                    companyIDs = company_names_or_ids;
+                }
+
+                var chartData = {
+                    labels: companyIDs,
+                    values: values
+                };
+                createPieChart(chartData);
+            });
+
+        // Kontextmenü und Hover-Verhalten für Tabelle
+        // ============================================================================
         let contextMenu = document.getElementById('context-menu');
 
         rows.forEach(function (row) {
@@ -128,23 +212,53 @@
         if (deleteDepositButton) {
             deleteDepositButton.addEventListener("click", function (event) {
                 // Depotposition verkaufen
-                let confirmDelete = confirm("Sind Sie sicher, dass Sie das Wertpapier zum Verkauf anbieten möchten?");
-                if (confirmDelete) {
-                    fetch(`/api/personen/{{ person.person_id }}/depots/{{ deposit.deposit_id }}/depotposition/${selectedRowID}/verkauf`, {
-                        method: 'POST',
+                let selectedRowElement = document.querySelector(`[data-row-id="${selectedRowID}"]`);
+                let marketIdElement = selectedRowElement.querySelector('[data-market-id]');
+                let marketId = marketIdElement.getAttribute('data-market-id');
+                fetch('http://127.0.0.1:50052/markets/' + marketId, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(response => response.json())
+                    .then(json => {
+                        fetch('http://localhost:50050/currency_converter/' +
+                            json.market_fee + '/' +
+                            json.market_currency_code + '/' +
+                            'EUR',
+                            {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                            })
+                            .then(response => response.text())
+                            .then(text => {
+                                let tax_fee_to_pay = parseFloat(text).toFixed(2);
+                                let confirmDelete = confirm("Sind Sie sicher, dass Sie das Wertpapier zum Verkauf anbieten möchten? Transaktionsgeführen in Höhe von EUR " + tax_fee_to_pay + " werden beim Anbieten sofort in Rechnung gestellt.");
+                                if (confirmDelete) {
+                                    fetch(`/api/personen/{{ person.person_id }}/depots/{{ deposit.deposit_id }}/depotposition/${selectedRowElement.getAttribute('data-row-id')}/verkauf`, {
+                                        method: 'POST',
+                                    })
+                                        .then(response => {
+                                            if (response.ok) {
+                                                console.log("Depotposition erfolgreich zum Verkauf angeboten");
+                                                window.location.reload();
+                                            } else {
+                                                console.error("Fehler beim Verkauf der Depotposition");
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error("Fehler beim Verkauf der Depotposition:", error);
+                                        });
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Fehler beim Verkauf der Depotposition:", error);
+                            });
                     })
-                        .then(response => {
-                            if (response.ok) {
-                                console.log("Depotposition erfolgreich zum Verkauf angeboten");
-                                window.location.reload();
-                            } else {
-                                console.error("Fehler beim Verkauf der Depotposition");
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Fehler beim Verkauf der Depotposition:", error);
-                        });
-                }
+                    .catch(error => {
+                        console.error("Fehler beim Verkauf der Depotposition:", error);
+                    });
             });
         }
     });
