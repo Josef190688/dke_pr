@@ -163,7 +163,7 @@ def sell(person_id, deposit_id, position_id):
                     market_currency = market['market_currency_code']
 
                     converted_price = "%.2f" % converter.convert(security_price, security_currency, market_currency)
-                    fee_to_pay = "%.2f" % converter.convert(market['market_fee'], market_currency, 'EUR')
+                    fee_to_pay = float("%.2f" % converter.convert(market['market_fee'], market_currency, 'EUR'))
                     
                     print(converted_price)
                     data = {
@@ -175,6 +175,7 @@ def sell(person_id, deposit_id, position_id):
                     }
                     response = requests.post(f'http://localhost:50052/markets/{position.market_id}/offer', json=data, headers={'Content-Type': 'application/json'})
                     if response.status_code == 200:
+                        person.account.update(account_balance_in_euro = person.account.account_balance_in_euro - fee_to_pay)
                         models.delete_securities_position(position.securities_position_id)
                         flash('Wertpapier erfolgreich zum Verkauf angeboten')
                         return jsonify({'message': 'Wertpapier erfolgreich zum Verkauf angeboten'}), 200
