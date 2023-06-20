@@ -1,7 +1,9 @@
+import csv
+import io
 from flask_login import current_user, login_required
 import requests
 from app import app, models, converter
-from flask import flash, make_response, redirect, request, jsonify, url_for
+from flask import Response, flash, make_response, redirect, request, jsonify, url_for
 
 # CRUD Personen
 # ------------------------------------------------------------------------------------------
@@ -118,6 +120,15 @@ def delete_depot(person_id, deposit_id):
 # CRUD Depotpositionen
 # ------------------------------------------------------------------------------------------
 
+# GET Depotposition
+@app.route('/api/depotpositionen/<int:position_id>', methods=['GET'])
+@login_required
+def get_deposit_by__deposit_id(position_id):
+    if current_user.is_admin:
+        return jsonify(models.get_securities_position(position_id).to_dict()), 200
+    else:
+        return jsonify({'error': 'Kein Admin'}), 400
+
 # POST Depotposition - Verkauf
 @app.route('/api/personen/<int:person_id>/depots/<int:deposit_id>/depotposition/<int:position_id>/verkauf', methods=['POST'])
 @login_required
@@ -151,9 +162,9 @@ def sell(person_id, deposit_id, position_id):
                     market = response.json()
                     market_currency = market['market_currency_code']
 
-                    converted_price = converter.convert(security_price, security_currency, market_currency)
+                    converted_price = "%.2f" % converter.convert(security_price, security_currency, market_currency)
+                    fee_to_pay = "%.2f" % converter.convert(market['market_fee'], market_currency, 'EUR')
                     
-                    # TODO: Prüfen, ob gehug Geld am Konto, sonst Abbruch
                     print(converted_price)
                     data = {
                         'id': position.security_id,
@@ -179,12 +190,64 @@ def sell(person_id, deposit_id, position_id):
             flash(e)
             return jsonify({'error': e}), 500
         
+# CSV
+# ------------------------------------------------------------------------------------------
+@app.route('/api/personen/<int:person_id>/depots/csv')
+@login_required
+def export_csv(person_id):
+    # Hier kannst du den Code einfügen, um die Daten für das Portfolio zu erhalten
+    # und sie in einem geeigneten Format vorzubereiten, z. B. einer Liste von Dictionaries.
+
+    person = models.get_person(person_id)
+    portfolio_data = []
+    deposits = person.deposits
+    for deposit in deposits:
+        for position in deposit.securities_positions:
+            wertpapier_name = position.security_id
+            preis = 'unbekannt'
+            try:
+                response = requests.get(f'http://localhost:50051/firmen/wertpapiere/{position.security_id}', headers={'Content-Type': 'application/json'})
+                if response.status_code == 200:
+                    security = response.json()
+                    wertpapier_name = security['name']
+                    preis = converter.convert(security['price'], security['currency'], 'EUR')
+                    preis = round(preis, 2)
+            except Exception as e:
+                print(e)    
+            portfolio_data.append(
+                {
+                    'Depotname': deposit.deposit_name,
+                    'Wertpapier': wertpapier_name,
+                    'Anzahl': position.amount,
+                    'Preis pro Stück in EUR': preis
+                }
+            )
+
+    filename = f"portfolio_{person.last_name}_{person.first_name}.csv"
+
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=portfolio_data[0].keys())
+    writer.writeheader()
+    writer.writerows(portfolio_data)
+    output = output.getvalue()
+
+    response = Response(output, mimetype='text/csv')
+    response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+    return response
+        
 # Öffentliche API
 # ------------------------------------------------------------------------------------------
 
+# Nachricht erhalten, wenn ein Wertpapier eines Depots verkauft wurde
 @app.route('/depot/wertpapier/verkauf/<int:depot_id>', methods=['PUT'])
 def wertpapier_verkauft(depot_id):
     data = request.get_json()
     print('Verkauf Wertpapier, Depot ID: ' + str(depot_id))
     print('Received data:', data)
+    flash('Wertpapiere von Depot ' + str(depot_id) + 'wurden verkauft.', 'success')
     return f"Verkauf von Wertpapier mit der ID {depot_id}"
+
+# CurrencyConverter
+@app.route('/currency_converter/<float:amount>/<string:from_currency>/<string:to_currency>', methods=['GET'])
+def convert(amount, from_currency, to_currency):
+    return str(converter.convert(amount, from_currency, to_currency))
