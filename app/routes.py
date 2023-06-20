@@ -243,6 +243,7 @@ def wertpapiere_kaufen(person_id, depot_id):
                                                   market_id=form.selectedBoersenId.data,
                                                   purchase_timestamp=datetime.now(),
                                                   deposit_id=depot_id)
+                person.account.update(account_balance_in_euro=(person.account.account_balance_in_euro - float(form.total_to_pay.data)))
                 flash('Kauf war erfolgreich', 'success')
                 return redirect(url_for('depositByPerson', person_id=person_id, depot_id=depot_id))
             else:

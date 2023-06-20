@@ -195,9 +195,6 @@ def sell(person_id, deposit_id, position_id):
 @app.route('/api/personen/<int:person_id>/depots/csv')
 @login_required
 def export_csv(person_id):
-    # Hier kannst du den Code einfügen, um die Daten für das Portfolio zu erhalten
-    # und sie in einem geeigneten Format vorzubereiten, z. B. einer Liste von Dictionaries.
-
     person = models.get_person(person_id)
     portfolio_data = []
     deposits = person.deposits
