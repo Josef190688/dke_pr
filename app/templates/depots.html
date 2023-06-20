@@ -76,7 +76,8 @@
         </tr>
         <tr style="border-top: 1px solid #ddd; font-weight: bold;">
             <td style="padding-right: 100px;">Gesamt-Vermögen</td>
-            <td class="text-right">{{ person.account.displayed_currency }} {{ '%.2f' % (person.account.account_balance_in_euro + gesamtwert) }}</td>
+            <td class="text-right">{{ person.account.displayed_currency }} {{ '%.2f' %
+                (person.account.account_balance_in_euro + gesamtwert) }}</td>
         </tr>
     </tbody>
 </table>
@@ -119,12 +120,14 @@
         <tr data-row-id="{{ deposit.deposit_id }}" , data-has-positions="FALSE">
             {% endif %}
             <td style="vertical-align: middle;">{{ deposit.deposit_name }}</td>
-            <td style="vertical-align: middle;">{{ person.account.displayed_currency }} {{ '%.2f' % deposit.gesamtwert }}</td>
+            <td style="vertical-align: middle;">{{ person.account.displayed_currency }} {{ '%.2f' % deposit.gesamtwert
+                }}</td>
             <input type="hidden" class="has-positions" value="{{ deposit.securities_positions }}">
         </tr>
         {% endfor %}
     </tbody>
 </table>
+<a class="btn btn-primary" onclick="exportPortfolio()">Portfolio als CSV exportieren</a>
 {% endif %}
 
 <!-- JavaScript -->
@@ -385,4 +388,31 @@
     });
 </script>
 {% endif %}
+
+<script>
+    // CSV
+    // ============================================================================
+    function exportPortfolio() {
+        fetch(`/api/personen/{{ person.person_id }}/depots/csv`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'text/csv'
+            }
+        })
+            .then(response => response.blob())
+            .then(blob => {
+                // Erstelle einen Download-Link für die CSV-Datei
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'portfolio.csv');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+            .catch(error => {
+                console.error('Fehler beim Exportieren des Portfolios:', error);
+            });
+    }
+</script>
 {% endblock %}
