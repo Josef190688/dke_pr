@@ -45,7 +45,7 @@
     </div>
     <div class="form-group">
         <div class="col-xs-offset-2 col-xs-8">
-            <span id="anzahlInputValid" class="text-danger" style="display: none;"></span>
+            <span id="anzahlInputValidationInfo" class="text-danger" style="display: none;"></span>
         </div>
     </div>
 
@@ -154,7 +154,7 @@
 
         // Validierung für Aktivierung des Kaufbuttons und Anzeigen / Ausblenden der Elemente
         function validateInputs() {
-            document.getElementById('anzahlInputValid').style.display = 'none';
+            document.getElementById('anzahlInputValidationInfo').style.display = 'none';
             const selectedWertpapier = wertpapierSelectElement.value;
             const selectedBoerse = boerseSelectElement.value;
 
@@ -163,9 +163,10 @@
                 document.getElementById('prices').style.display = 'block';
                 console.log('wertpapiere[wertpapierSelectElement.value]', wertpapiere[wertpapierSelectElement.value])
                 console.log('price?', wertpapiere[wertpapierSelectElement.value].price)
+                let wertpapier_preis_as_float = parseFloat(wertpapiere[wertpapierSelectElement.value].price).toFixed(2);
                 // Stückpreis in Börsenwährung ermitteln
                 fetch('http://localhost:50050/currency_converter/' +
-                    wertpapiere[wertpapierSelectElement.value].price + '/' +
+                    wertpapier_preis_as_float + '/' +
                     wertpapiere[wertpapierSelectElement.value].currency + '/' +
                     boersen[boerseSelectElement.value].market_currency_code,
                     {
@@ -184,7 +185,7 @@
                             (parseFloat(text).toFixed(2) * parseInt(amountInputElement.value)).toFixed(2);
                         // Stückpreis in Depotwährung ermitteln
                         fetch('http://localhost:50050/currency_converter/' +
-                            wertpapiere[wertpapierSelectElement.value].price + '/' +
+                            wertpapier_preis_as_float + '/' +
                             wertpapiere[wertpapierSelectElement.value].currency + '/' +
                             '{{ person.account.displayed_currency }}',
                             {
@@ -204,7 +205,7 @@
                                     gesamtpreisInDepotwährung;
                                 // Transaktionsgebühren in Depotwährung ermitteln
                                 fetch('http://localhost:50050/currency_converter/' +
-                                    boersen[boerseSelectElement.value].market_fee + '/' +
+                                    parseFloat(boersen[boerseSelectElement.value].market_fee).toFixed(2) + '/' +
                                     boersen[boerseSelectElement.value].market_currency_code + '/' +
                                     '{{ person.account.displayed_currency }}',
                                     {
@@ -240,14 +241,14 @@
                                         if (match) {
                                             extractedNumber = parseInt(match[0]);
                                             if (!isNaN(amountInputElement.value) && amountInputElement.value > extractedNumber) {
-                                                document.getElementById('anzahlInputValid').style.display = 'block';
-                                                document.getElementById('anzahlInputValid').innerHTML = 'Die zu kaufende Stückzahl ist größer als die verfügbare Stückzahl.'
+                                                document.getElementById('anzahlInputValidationInfo').style.display = 'block';
+                                                document.getElementById('anzahlInputValidationInfo').innerHTML = 'Die zu kaufende Stückzahl ist größer als die verfügbare Stückzahl.'
                                             } else {
-                                                document.getElementById('anzahlInputValid').style.display = 'none';
+                                                document.getElementById('anzahlInputValidationInfo').style.display = 'none';
                                             }
                                         } else {
-                                            document.getElementById('anzahlInputValid').style.display = 'block';
-                                            document.getElementById('anzahlInputValid').innerHTML = 'Die Eingabe muss eine gültige Zahl sein.'
+                                            document.getElementById('anzahlInputValidationInfo').style.display = 'block';
+                                            document.getElementById('anzahlInputValidationInfo').innerHTML = 'Die Eingabe muss eine gültige Zahl sein.'
                                         }
 
                                         // Überprüfen, ob beide Werte ausgewählt wurden und die Anzahl eine gültige Zahl ist
