@@ -154,6 +154,7 @@
 
         // Validierung für Aktivierung des Kaufbuttons und Anzeigen / Ausblenden der Elemente
         function validateInputs() {
+            document.getElementById('anzahlInputValid').style.display = 'none';
             const selectedWertpapier = wertpapierSelectElement.value;
             const selectedBoerse = boerseSelectElement.value;
 
@@ -283,7 +284,7 @@
         wertpapierSelectElement.addEventListener('change', function () {
             // zurücksetzen der Ursprungswerte
             boerseSelectElement.innerHTML = '';
-            amountInputElement.value = '0';
+            amountInputElement.value = '';
             document.getElementById('enoughMoney').style.display = 'none';
 
             // Firmen-ID ins Form-Element setzen
