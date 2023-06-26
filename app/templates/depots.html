@@ -11,10 +11,11 @@
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Depot erstellen
         </button>
-        <form id="dropdown_form" class="dropdown-menu p-4" style="min-width: 300px;">
+        <form id="dropdown_form_depot_erstellen" class="dropdown-menu p-4" style="min-width: 300px;">
             <div class="form-group" style="margin: 7%; margin-bottom: 0;">
                 <input type="text" class="form-control" id="depotNameInput" placeholder="Name des Depots">
-                <span id="name_bereits_vorhanden" class="text-danger" style="display: none;">Name bereits vorhanden</span>
+                <span id="name_bereits_vorhanden" class="text-danger" style="display: none;">Name bereits
+                    vorhanden</span>
             </div>
             <button style="margin: 7%;" type="submit" class="btn btn-primary" id="erstellen" onclick="depotErstellen()"
                 disabled>erstellen</button>
@@ -91,6 +92,21 @@
     Es sind keine Depots vorhanden.
 </div>
 {% else %}
+
+<!-- Umbenennen-Form (Position variabel) -->
+<div class="dropdown">
+    <form id="dropdown_form_depot_umbenennen" class="dropdown-menu p-4" style="min-width: 300px;">
+        <div class="form-group" style="margin: 7%; margin-bottom: 0;">
+            <input id="depotNameVorher" type="text" class="form-control" readonly>
+            <br>
+            <input id="depotNameNachher" type="text" class="form-control" placeholder="Neuer Name">
+            <span id="name_bereits_vorhanden_umbenennen" class="text-danger" style="display: none;">Name bereits
+                vorhanden</span>
+        </div>
+        <button id="umbenennen" style="margin: 7%;" type="submit" class="btn btn-primary" id="umbenennen" disabled>umbenennen</button>
+    </form>
+</div>
+
 <!-- Kontext-Menü zur Tabelle, wenn Depots vorhanden -->
 <div class="btn-group d-md-none m-1">
     <button id="context-menu-button" class="btn dropdown-toggle" type="button" data-toggle="dropdown"
@@ -101,7 +117,7 @@
         <li><a id="show_deposit" href="#">Zum Depot</a></li>
         <!-- Update und Delete nur für Admins -->
         {% if current_user.is_admin %}
-        <li><a id="rename_deposit" href="#">Umbenennen</a></li>
+        <li id="rename_deposit_li"><a id="rename_deposit" href="#">Umbenennen</a></li>
         <li id="delete_deposit_li"><a id="delete_deposit" href="#">Löschen</a></li>
         {% endif %}
     </ul>
@@ -158,6 +174,7 @@
         erstellenButton.disabled = (this.value.trim().length === 0) || (name_bereits_vorhanden);
     });
 
+    // Depot-Name zurücksetzen, wenn Form neu aufgemacht wird
     createDepotButton.addEventListener("click", function () {
         if (createDepotButton.getAttribute("aria-expanded") === "false") {
             depotNameInput.value = "";
@@ -168,6 +185,59 @@
         event.preventDefault();
 
         depositName = depotNameInput.value;
+        let data = {
+            "deposit_name": depositName
+        };
+
+        fetch(`/api/personen/{{ person.person_id }}/depots`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Depot erfolgreich erstellt");
+                } else {
+                    console.error("Fehler beim Erstellen des Depots");
+                }
+                window.location.href = "/personen/{{ person.person_id }}/depots";
+            })
+            .catch(error => {
+                alert("Fehler beim Erstellen des Depots", error);
+                window.location.href = "/personen/{{ person.person_id }}/depots";
+            });
+    };
+</script>
+{% endif %}
+
+{% if current_user.is_admin %}
+<script>
+    // Depot umbenennen
+    // ============================================================================
+    let umbenennenInput = document.getElementById("depotNameNachher");
+    let umbenennenButton = document.getElementById("umbenennen");
+
+    // Depot umbenennen Validierung
+    umbenennenInput.addEventListener("input", function () {
+        let rows = document.querySelectorAll(".table-hover tbody tr");
+        let name_bereits_vorhanden = false;
+        rows.forEach(function (row) {
+            let name = row.cells[0].textContent;
+            if (name === umbenennenInput.value) {
+                name_bereits_vorhanden = true;
+            }
+        });
+        let info = document.getElementById('name_bereits_vorhanden_umbenennen');
+        name_bereits_vorhanden ? info.style.display = 'block' : info.style.display = 'none';
+        umbenennenButton.disabled = (this.value.trim().length === 0) || (name_bereits_vorhanden);
+    });
+
+    umbenennen.onclick = function (event) {
+        event.preventDefault();
+
+        depositName = umbenennenInput.value;
         let data = {
             "deposit_name": depositName
         };
@@ -194,6 +264,7 @@
     };
 </script>
 {% endif %}
+
 {% if current_user.is_admin %}
 <script>
     // einzahlen
@@ -305,6 +376,8 @@
                 if (id === selectedRowID) {
                     selectedRowID = null;
                     contextMenu.style.display = 'none';
+                    let umbenennenForm = document.getElementById('dropdown_form_depot_umbenennen');
+                    umbenennenForm.style.display = 'none';
                     rows.forEach(function (row) {
                         row.classList.remove("active");
                     });
@@ -332,8 +405,9 @@
         });
 
         document.addEventListener("click", function (event) {
-            let isClickedInsideRow = false;
             let target = event.target;
+            // Kontextmenü der Tabelle verbergen, wenn nicht innerhalb Tabelle geklickt
+            let isClickedInsideRow = false;
             while (target.parentNode) {
                 if (target.matches(".table-hover tbody tr")) {
                     isClickedInsideRow = true;
@@ -347,6 +421,24 @@
                 rows.forEach(function (row) {
                     row.classList.remove("active");
                 });
+            }
+            // Form zum Umbenennen eines Depots verbergen, wenn nicht innerhalb des Forms geklickt
+            let isClickedInsideUmbenennenForm = false;
+            target = event.target;
+            while (target.parentNode) {
+                if (target.id === "dropdown_form_depot_umbenennen") {
+                    isClickedInsideUmbenennenForm = true;
+                    break;
+                }
+                target = target.parentNode;
+            }
+            let umbenennenForm = document.getElementById('dropdown_form_depot_umbenennen');
+            if (!(isClickedInsideUmbenennenForm ||
+                event.target.id === "rename_deposit_li" ||
+                event.target.id === "rename_deposit")) {
+                umbenennenForm.style.display = 'none';
+            } else {
+                umbenennenForm.style.display = 'block';
             }
         });
 
@@ -368,7 +460,21 @@
         let renameDepositButton = document.getElementById('rename_deposit');
         if (renameDepositButton) {
             renameDepositButton.addEventListener("click", function (event) {
-                // TODO umbenennen
+                // Position setzen
+                let boundaries = renameDepositButton.getBoundingClientRect();
+                let umbenennenForm = document.getElementById('dropdown_form_depot_umbenennen');
+                umbenennenForm.style.display = 'block';
+                umbenennenForm.style.left = document.getElementById('context-menu').style.left;
+                umbenennenForm.style.top = document.getElementById('context-menu').style.top;
+
+                // Name des umzubenennenden Depots setzen
+                let vorher = document.getElementById('depotNameVorher');
+                let rowElement = document.querySelector('tr[data-row-id="' + selectedRowID + '"]');
+                let tdElement = rowElement.querySelector('td:nth-child(1)');
+                vorher.value = tdElement.innerHTML;
+
+                // Input für neuen Namen leeren
+                document.getElementById('depotNameNachher').value = '';
             });
         }
 

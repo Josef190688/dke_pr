@@ -195,6 +195,21 @@ def create_deposit(person_id, deposit_name):
 def get_deposit(deposit_id: int) -> Union[Deposit, None]:
     return Deposit.query.filter_by(deposit_id=deposit_id).first()
 
+# UPDATE
+def update_deposit(person_id, deposit_name):
+    try:
+        deposit = Deposit.query.filter_by(deposits_person_id=person_id).first()
+        if deposit:
+            deposit.deposit_name = deposit_name
+            db.session.commit()
+            return deposit
+        else:
+            return None
+    except Exception as e:
+        print(e)
+        db.session.rollback()
+        return None
+
 # DELETE
 def delete_deposit(deposit_id):
     try:

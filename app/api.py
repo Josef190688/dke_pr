@@ -79,7 +79,7 @@ def auszahlen(person_id):
 # ------------------------------------------------------------------------------------------
 
 # CREATE Depot
-@app.route('/api/personen/<int:person_id>/depots', methods=['PUT'])
+@app.route('/api/personen/<int:person_id>/depots', methods=['POST'])
 @login_required
 def create_depot(person_id):
     if current_user.is_admin:
@@ -95,6 +95,26 @@ def create_depot(person_id):
             
             deposit = models.create_deposit(person_id, deposit_name)
             return jsonify({'message': 'Depot created successfully', 'deposit': deposit.to_dict()}), 201
+        except Exception as e:
+            return jsonify({'error': e}), 500
+        
+# UPDATE Depot
+@app.route('/api/personen/<int:person_id>/depots', methods=['PUT'])
+@login_required
+def update_depot(person_id):
+    if current_user.is_admin:
+        try:
+            person = models.get_person(person_id)
+            if not person:
+                return jsonify({'error': 'Person not found'}), 404
+            
+            data = request.get_json()
+            deposit_name = data.get('deposit_name')
+            if not deposit_name:
+                return jsonify({'error': 'Depot name is required'}), 400
+            
+            deposit = models.update_deposit(person_id, deposit_name)
+            return jsonify({'message': 'Depot updated successfully', 'deposit': deposit.to_dict()}), 201
         except Exception as e:
             return jsonify({'error': e}), 500
 
