@@ -67,7 +67,7 @@
     <tbody>
         <tr>
             <td style="padding-right: 100px;">Konto-Vermögen</td>
-            <td class="text-right">{{ person.account.displayed_currency }} {{ person.account.format_account_balance() }}
+            <td class="text-right">{{ person.account.displayed_currency }} {{ '%.2f' % person.account.account_balance_in_euro }}
             </td>
         </tr>
         <tr>

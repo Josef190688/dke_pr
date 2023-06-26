@@ -242,7 +242,15 @@ def wertpapier_verkauft(depot_id):
     data = request.get_json()
     print('Verkauf Wertpapier, Depot ID: ' + str(depot_id))
     print('Received data:', data)
-    flash('Wertpapiere von Depot ' + str(depot_id) + 'wurden verkauft.', 'success')
+    price = data.get('price')
+    currency = data.get('currency')
+    converted_price = "%.2f" % converter.convert(price, currency, 'EUR')
+    depot = models.get_deposit(depot_id)
+    if depot:
+        account = depot.person.account
+        print(depot.person.first_name + ' ' + depot.person.last_name + ' hat Wertpapiere verkauft und bekommt:', price, currency)
+        account.update(account_balance_in_euro = account.account_balance_in_euro + float(converted_price))
+        flash('Wertpapiere von Depot ' + str(depot_id) + 'wurden verkauft.', 'success')
     return f"Verkauf von Wertpapier mit der ID {depot_id}"
 
 # CurrencyConverter

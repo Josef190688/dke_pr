@@ -234,7 +234,6 @@ def wertpapiere_kaufen(person_id, depot_id):
                 # 'price': entry.get('price')
                 'currency' : form.currency.data
             }
-            print(data2)
             response = requests.put(f"http://127.0.0.1:50052/markets/{form.selectedBoersenId.data}/buy", json=data)
             if response.status_code == 200:
                 models.create_securities_position(security_id=form.selectedWertpapierId.data,
