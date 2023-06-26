@@ -101,9 +101,7 @@
         <div class="form-group">
             <label class="control-label col-xs-4" style="padding-right: 0;">Transaktionsgebühren</label>
             <div class="col-xs-6">
-                <input id="transaktionsgebühren" type="text" class="form-control col-xs-8"
-                    value="{{ person.account.displayed_currency }} {{ person.account.account_balance_in_euro }}"
-                    readonly>
+                <input id="transaktionsgebühren" type="text" class="form-control col-xs-8" readonly>
             </div>
         </div>
 
@@ -285,9 +283,10 @@
         wertpapierSelectElement.addEventListener('change', function () {
             // zurücksetzen der Ursprungswerte
             boerseSelectElement.innerHTML = '';
-            amountInputElement.value = '';
+            amountInputElement.value = '0';
             document.getElementById('enoughMoney').style.display = 'none';
 
+            // Firmen-ID ins Form-Element setzen
             const selectedValue = wertpapierSelectElement.value;
             document.getElementById('selectedWertpapierId').value = selectedValue;
             if (wertpapiere[selectedValue]) {
@@ -308,13 +307,6 @@
                 });
                 document.getElementById('infotext').style.display = 'none';
                 anzahlElement.style.display = 'block';
-                let max = 0;
-                wertpapiereZuBoersen[wertpapierSelectElement.value][boerseSelectElement.value].offer.forEach(offer => {
-                    if (offer.security_id == wertpapierSelectElement.value) {
-                        max += offer.amount;
-                    }
-                });
-                document.getElementById('maxAnzahl').innerHTML = ' von ' + max;
                 boerseSelectElement.style.display = 'block';
             } else {
                 document.getElementById('infotext').style.display = 'block';
@@ -322,7 +314,7 @@
                 boerseSelectElement.style.display = 'none';
             }
             validateInputs();
-            // Programmatisch das "change"-Event auslösen
+            // Programmatisch das "change"-Event der selektierten Börse auslösen
             const event = new Event('change');
             boerseSelectElement.dispatchEvent(event);
         })
@@ -333,11 +325,22 @@
             amountInputElement.value = '';
             document.getElementById('enoughMoney').style.display = 'none';
 
-            const selectedValue = boerseSelectElement.value;
-            document.getElementById('selectedBoersenId').value = selectedValue;
-            if (boersen[selectedValue]) {
+            // Börsen-ID setzen
+            const selectedBoersenId = boerseSelectElement.value;
+            document.getElementById('selectedBoersenId').value = selectedBoersenId;
+
+            if (boersen[selectedBoersenId]) {
                 // Währung der Börse ins Form geben
-                document.getElementById('currency').value = boersen[selectedValue].market_currency_id;
+                document.getElementById('currency').value = boersen[selectedBoersenId].market_currency_id;
+
+                // maximale Stückzahl berechnen und anzeigen
+                let max = 0;
+                wertpapiereZuBoersen[wertpapierSelectElement.value][boerseSelectElement.value].offer.forEach(offer => {
+                    if (offer.security_id == wertpapierSelectElement.value) {
+                        max += offer.amount;
+                    }
+                });
+                document.getElementById('maxAnzahl').innerHTML = ' von ' + max;
             }
             validateInputs();
         });
