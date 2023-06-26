@@ -11,9 +11,10 @@
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Depot erstellen
         </button>
-        <form id="dropdown_form" class="dropdown-menu p-4">
+        <form id="dropdown_form" class="dropdown-menu p-4" style="min-width: 300px;">
             <div class="form-group" style="margin: 7%; margin-bottom: 0;">
                 <input type="text" class="form-control" id="depotNameInput" placeholder="Name des Depots">
+                <span id="name_bereits_vorhanden" class="text-danger" style="display: none;">Name bereits vorhanden</span>
             </div>
             <button style="margin: 7%;" type="submit" class="btn btn-primary" id="erstellen" onclick="depotErstellen()"
                 disabled>erstellen</button>
@@ -67,7 +68,8 @@
     <tbody>
         <tr>
             <td style="padding-right: 100px;">Konto-Vermögen</td>
-            <td class="text-right">{{ person.account.displayed_currency }} {{ '%.2f' % person.account.account_balance_in_euro }}
+            <td class="text-right">{{ person.account.displayed_currency }} {{ '%.2f' %
+                person.account.account_balance_in_euro }}
             </td>
         </tr>
         <tr>
@@ -141,9 +143,21 @@
     let createDepotButton = document.getElementById("depotErstellenButton");
     let erstellenButton = document.getElementById("erstellen");
 
+    // Depot erstellen Validierung
     depotNameInput.addEventListener("input", function () {
-        erstellenButton.disabled = this.value.trim().length === 0;
+        let rows = document.querySelectorAll(".table-hover tbody tr");
+        let name_bereits_vorhanden = false;
+        rows.forEach(function (row) {
+            let name = row.cells[0].textContent;
+            if (name === depotNameInput.value) {
+                name_bereits_vorhanden = true;
+            }
+        });
+        let info = document.getElementById('name_bereits_vorhanden');
+        name_bereits_vorhanden ? info.style.display = 'block' : info.style.display = 'none';
+        erstellenButton.disabled = (this.value.trim().length === 0) || (name_bereits_vorhanden);
     });
+
     createDepotButton.addEventListener("click", function () {
         if (createDepotButton.getAttribute("aria-expanded") === "false") {
             depotNameInput.value = "";
